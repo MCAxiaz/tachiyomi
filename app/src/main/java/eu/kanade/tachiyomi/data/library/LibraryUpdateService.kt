@@ -304,9 +304,6 @@ class LibraryUpdateService(
                 }
                 // Add manga with new chapters to the list.
                 .doOnNext { manga ->
-                    // Set last updated time
-                    manga.last_update = Date().time
-                    db.updateLastUpdated(manga).executeAsBlocking()
                     // Add to the list
                     newUpdates.add(manga)
                 }
@@ -463,6 +460,7 @@ class LibraryUpdateService(
             if (newUpdates.size > 1) {
                 setContentText(getString(R.string.notification_new_chapters_text, newUpdates.size))
                 setStyle(NotificationCompat.BigTextStyle().bigText(newUpdates.joinToString("\n")))
+                setNumber(newUpdates.size)
             } else {
                 setContentText(newUpdates.first())
             }
