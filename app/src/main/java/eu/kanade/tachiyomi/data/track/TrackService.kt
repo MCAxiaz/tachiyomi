@@ -10,6 +10,7 @@ import okhttp3.OkHttpClient
 import rx.Completable
 import rx.Observable
 import uy.kohesive.injekt.injectLazy
+import java.net.URI
 
 abstract class TrackService(val id: Int) {
 
@@ -67,5 +68,4 @@ abstract class TrackService(val id: Int) {
     fun saveCredentials(username: String, password: String) {
         preferences.setTrackCredentials(this, username, password)
     }
-
 }

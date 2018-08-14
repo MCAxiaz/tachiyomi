@@ -117,6 +117,14 @@ class PreferencesHelper(val context: Context) {
                 .apply()
     }
 
+    fun trackCSRF() = prefs.getString(Keys.trackCSRF, "")
+
+    fun setCSRF(csrf: String) {
+        prefs.edit()
+                .putString(Keys.trackCSRF, csrf)
+                .apply()
+    }
+
     fun trackToken(sync: TrackService) = rxPrefs.getString(Keys.trackToken(sync.id), "")
 
     fun anilistScoreType() = rxPrefs.getString("anilist_score_type", "POINT_10")

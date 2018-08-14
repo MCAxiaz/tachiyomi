@@ -8,6 +8,7 @@ import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import eu.kanade.tachiyomi.data.track.TrackService
 import rx.Completable
 import rx.Observable
+import java.net.URI
 
 class Myanimelist(private val context: Context, id: Int) : TrackService(id) {
 
@@ -21,9 +22,13 @@ class Myanimelist(private val context: Context, id: Int) : TrackService(id) {
 
         const val DEFAULT_STATUS = READING
         const val DEFAULT_SCORE = 0
+
+        const val BASE_URL = "https://myanimelist.net"
+        const val USER_SESSION_COOKIE = "MALSESSIONID"
+        const val LOGGED_IN_COOKIE = "is_logged_in"
     }
 
-    private val api by lazy { MyanimelistApi(client, getUsername(), getPassword()) }
+    private val api by lazy { MyanimelistApi(client) }
 
     override val name: String
         get() = "MyAnimeList"
@@ -56,7 +61,7 @@ class Myanimelist(private val context: Context, id: Int) : TrackService(id) {
     }
 
     override fun add(track: Track): Observable<Track> {
-        return api.addLibManga(track)
+        return api.addLibManga(track, getCSRF())
     }
 
     override fun update(track: Track): Observable<Track> {
@@ -64,11 +69,11 @@ class Myanimelist(private val context: Context, id: Int) : TrackService(id) {
             track.status = COMPLETED
         }
 
-        return api.updateLibManga(track)
+        return api.updateLibManga(track, getCSRF())
     }
 
     override fun bind(track: Track): Observable<Track> {
-        return api.findLibManga(track, getUsername())
+        return api.findLibManga(track, getCSRF())
                 .flatMap { remoteTrack ->
                     if (remoteTrack != null) {
                         track.copyPersonalFrom(remoteTrack)
@@ -83,11 +88,11 @@ class Myanimelist(private val context: Context, id: Int) : TrackService(id) {
     }
 
     override fun search(query: String): Observable<List<TrackSearch>> {
-        return api.search(query, getUsername())
+        return api.search(query)
     }
 
     override fun refresh(track: Track): Observable<Track> {
-        return api.getLibManga(track, getUsername())
+        return api.getLibManga(track, getCSRF())
                 .map { remoteTrack ->
                     track.copyPersonalFrom(remoteTrack)
                     track.total_chapters = remoteTrack.total_chapters
@@ -96,10 +101,43 @@ class Myanimelist(private val context: Context, id: Int) : TrackService(id) {
     }
 
     override fun login(username: String, password: String): Completable {
+        logout()
+
         return api.login(username, password)
+                .doOnNext { csrf ->
+                    saveCSRF(csrf) }
                 .doOnNext { saveCredentials(username, password) }
-                .doOnError { logout() }
+                .doOnError {
+                    logout()
+                }
                 .toCompletable()
+    }
+
+    override fun logout() {
+        super.logout()
+        preferences.setCSRF("")
+        networkService.cookies.remove(URI(BASE_URL))
+    }
+
+    override val isLogged: Boolean
+        get() = !getUsername().isEmpty() &&
+                !getPassword().isEmpty() &&
+                checkCookies(URI(BASE_URL)) &&
+                !getCSRF().isEmpty()
+
+    private fun getCSRF(): String = preferences.trackCSRF()
+
+    private fun saveCSRF(csrf: String) = preferences.setCSRF((csrf))
+
+    private fun checkCookies(uri: URI): Boolean {
+        var ckCount = 0
+
+        for (ck in networkService.cookies.get(uri)) {
+            if (ck.name() == USER_SESSION_COOKIE || ck.name() == LOGGED_IN_COOKIE)
+                ckCount++
+        }
+
+        return ckCount == 2
     }
 
 }
