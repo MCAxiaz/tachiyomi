@@ -251,14 +251,14 @@ class ReaderPresenter(
         }
 
         val currentScanlator = currentChapter.chapter.scanlator
-        currentScanlator?.let {
+        if (newChapter != null && currentScanlator != null) {
             currentChapterPos = chapterList.indexOf(newChapter)
-            val newChapterNumber = newChapter?.chapter?.chapter_number
+            val newChapterNumber = newChapter.chapter.chapter_number
             var newCandidate = newChapter
             val step = direction.value
 
             while (newChapterNumber == newCandidate?.chapter?.chapter_number) {
-                if (newCandidate?.chapter?.scanlator == currentScanlator) return newCandidate
+                if (newCandidate.chapter.scanlator == currentScanlator) return newCandidate
 
                 currentChapterPos += step
                 newCandidate = chapterList.getOrNull(currentChapterPos)
@@ -278,7 +278,7 @@ class ReaderPresenter(
 
         return previousChapter
     }
-    
+
     private fun findImmediateNextChapter(chapterPos: Int, currentChapterNumber: Float): ReaderChapter? {
         var currentChapterPos = chapterPos
         var nextChapter: ReaderChapter?
