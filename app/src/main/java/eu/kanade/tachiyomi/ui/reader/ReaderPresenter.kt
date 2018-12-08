@@ -232,19 +232,15 @@ class ReaderPresenter(
     }
 
     private fun findPreviousChapter(chapter: ReaderChapter): ReaderChapter? {
-        return if (preferences.skipDupeChapters()) findNextChapterInDirection(chapter, Direction.Previous)
+        return if (preferences.skipDupeChapters() && chapter.chapter.chapter_number >= 0) findNextChapterInDirection(chapter, Direction.Previous)
             else chapterList.getOrNull(chapterList.indexOf(chapter)-1)
     }
 
     private fun findNextChapter(chapter: ReaderChapter): ReaderChapter? {
-        return if (preferences.skipDupeChapters()) findNextChapterInDirection(chapter, Direction.Next)
+        return if (preferences.skipDupeChapters() && chapter.chapter.chapter_number >= 0) findNextChapterInDirection(chapter, Direction.Next)
             else chapterList.getOrNull(chapterList.indexOf(chapter)+1)
     }
 
-    /**
-     * Finds first non-duplicate next/previous chapter while attempting to keep same scanlator.
-     * Defaults to first one found if same scanlator cannot be found.
-     */
     private fun findNextChapterInDirection(currentChapter: ReaderChapter, direction: Direction): ReaderChapter? {
         var currentChapterPos = chapterList.indexOf(currentChapter)
         val currentChapterNumber = currentChapter.chapter.chapter_number
@@ -272,9 +268,6 @@ class ReaderPresenter(
         return newChapter
     }
 
-    /**
-     * returns the first non-duplicate previous chapter
-     */
     private fun findImmediatePreviousChapter(chapterPos: Int, currentChapterNumber: Float): ReaderChapter? {
         var currentChapterPos = chapterPos
         var previousChapter: ReaderChapter?
@@ -285,10 +278,7 @@ class ReaderPresenter(
 
         return previousChapter
     }
-
-    /**
-     * returns the first non-duplicate next chapter
-     */
+    
     private fun findImmediateNextChapter(chapterPos: Int, currentChapterNumber: Float): ReaderChapter? {
         var currentChapterPos = chapterPos
         var nextChapter: ReaderChapter?
