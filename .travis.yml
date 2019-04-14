@@ -1,3 +1,7 @@
 language: android
-before_install:
-- yes | sdkmanager "platforms;android-27" # workaround for accepting the license
+android:
+  components:
+  - build-tools-28.0.3
+  - android-28
+  licenses:
+  - android-sdk-license-.+

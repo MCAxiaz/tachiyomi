@@ -30,9 +30,6 @@
     public *;
 }
 
-# RxJava 1.1.0
--dontwarn sun.misc.**
-
 -keepclassmembers class rx.internal.util.unsafe.*ArrayQueue*Field* {
    long producerIndex;
    long consumerIndex;
