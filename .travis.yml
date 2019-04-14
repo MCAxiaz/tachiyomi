@@ -5,3 +5,5 @@ android:
   - android-28
   licenses:
   - android-sdk-license-.+
+script:
+  - ./gradlew clean assembleDevRelease
