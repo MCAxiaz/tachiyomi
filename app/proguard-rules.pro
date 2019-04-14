@@ -1,5 +1,7 @@
 -dontobfuscate
 
+-dontwarn kotlinx.atomicfu.**
+
 -dontwarn eu.kanade.tachiyomi.**
 -keep class eu.kanade.tachiyomi.**
 -keep class eu.kanade.tachiyomi.source.model.** { *; }
@@ -79,7 +81,7 @@
 # JsonSerializer, JsonDeserializer instances (so they can be used in @JsonAdapter)
 -keep class * implements com.google.gson.TypeAdapterFactory
 -keep class * implements com.google.gson.JsonSerializer
--keep class * implements com.google.gson.JsonDeserializer
+-keep class * implements com.google.gson.JsonDeserializerc
 
 # SnakeYaml
 -keep class org.yaml.snakeyaml.** { public protected private *; }
