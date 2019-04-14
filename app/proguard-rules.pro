@@ -1,7 +1,5 @@
 -dontobfuscate
 
--dontwarn kotlinx.atomicfu.**
-
 -dontwarn eu.kanade.tachiyomi.**
 -keep class eu.kanade.tachiyomi.**
 -keep class eu.kanade.tachiyomi.source.model.** { *; }
@@ -22,6 +20,16 @@
 -dontwarn okio.**
 -dontwarn javax.annotation.**
 -dontwarn retrofit2.Platform$Java8
+
+# coroutines
+-keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
+-keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
+-keepnames class kotlinx.coroutines.android.AndroidExceptionPreHandler {}
+-keepnames class kotlinx.coroutines.android.AndroidDispatcherFactory {}
+
+-keepclassmembernames class kotlinx.** {
+    volatile <fields>;
+}
 
 # Glide specific rules #
 # https://github.com/bumptech/glide
