@@ -227,14 +227,16 @@ class ReaderPresenter(
             chapter: ReaderChapter
     ): Observable<ViewerChapters> {
         return loader.loadChapter(chapter)
-            .andThen(Observable.fromCallable {
-                ViewerChapters(chapter,
-                        findPreviousChapter(chapter),
-                        findNextChapter(chapter))
-            })
-            .observeOn(AndroidSchedulers.mainThread())
-            .doOnNext { newChapters ->
-                val oldChapters = viewerChaptersRelay.value
+                .andThen(Observable.fromCallable {
+                    val chapterPos = chapterList.indexOf(chapter)
+
+                    ViewerChapters(chapter,
+                            chapterList.getOrNull(chapterPos - 1),
+                            chapterList.getOrNull(chapterPos + 1))
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnNext { newChapters ->
+                    val oldChapters = viewerChaptersRelay.value
 
                     // Add new references first to avoid unnecessary recycling
                     newChapters.ref()
@@ -242,56 +244,6 @@ class ReaderPresenter(
 
                     viewerChaptersRelay.call(newChapters)
                 }
-    }
-
-    private fun findPreviousChapter(chapter: ReaderChapter): ReaderChapter? {
-        return if (preferences.skipDupeChapters()) findNextChapterInDirection(chapter, Direction.Previous)
-            else chapterList.getOrNull(chapterList.indexOf(chapter)-1)
-    }
-
-    private fun findNextChapter(chapter: ReaderChapter): ReaderChapter? {
-        return if (preferences.skipDupeChapters()) findNextChapterInDirection(chapter, Direction.Next)
-            else chapterList.getOrNull(chapterList.indexOf(chapter)+1)
-    }
-
-    private fun findNextChapterInDirection(currentChapter: ReaderChapter, direction: Direction): ReaderChapter? {
-        var currentChapterPos = chapterList.indexOf(currentChapter)
-        val currentChapterNumber = currentChapter.chapter.chapter_number
-        val currentScanlator = currentChapter.chapter.scanlator
-        val step = direction.value
-
-        if (currentChapterNumber < 0) {
-            return chapterList.getOrNull(currentChapterPos + step)
-        }
-
-        var newChapter: ReaderChapter?
-        do {
-            currentChapterPos += step
-            newChapter = chapterList.getOrNull(currentChapterPos)
-        } while (newChapter != null && newChapter.chapter.chapter_number == currentChapterNumber)
-
-        if (currentScanlator == null) {
-            return newChapter
-        }
-
-        newChapter?.let{
-            val newChapterNumber = it.chapter.chapter_number
-            var newCandidate: ReaderChapter? = it
-
-            do {
-                if (newCandidate?.chapter?.scanlator == currentScanlator) return newCandidate
-
-                currentChapterPos += step
-                newCandidate = chapterList.getOrNull(currentChapterPos)
-            } while (newChapterNumber == newCandidate?.chapter?.chapter_number)
-        }
-
-        return newChapter
-    }
-
-    private enum class Direction(val value: Int) {
-        Previous(-1),
-        Next(1)
     }
 
     /**
