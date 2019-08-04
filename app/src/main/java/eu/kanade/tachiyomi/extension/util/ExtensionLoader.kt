@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
+import android.os.Build
 import dalvik.system.PathClassLoader
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.data.preference.getOrDefault
@@ -30,7 +31,12 @@ internal object ExtensionLoader {
     private const val LIB_VERSION_MIN = 1
     private const val LIB_VERSION_MAX = 1
 
-    private const val PACKAGE_FLAGS = PackageManager.GET_CONFIGURATIONS or PackageManager.GET_SIGNING_CERTIFICATES
+    private val PACKAGE_FLAGS =
+            PackageManager.GET_CONFIGURATIONS or
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+                        PackageManager.GET_SIGNING_CERTIFICATES
+                    else
+                        PackageManager.GET_SIGNATURES
 
     /**
      * List of the trusted signatures.
@@ -98,7 +104,11 @@ internal object ExtensionLoader {
         val extName = pkgManager.getApplicationLabel(appInfo)?.toString()
             .orEmpty().substringAfter("Tachiyomi: ")
         val versionName = pkgInfo.versionName
-        val versionCode = pkgInfo.longVersionCode.toInt()
+        val versionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            pkgInfo.longVersionCode.toInt()
+        } else {
+            pkgInfo.versionCode
+        }
 
         // Validate lib version
         val majorLibVersion = versionName.substringBefore('.').toInt()
@@ -172,7 +182,12 @@ internal object ExtensionLoader {
      * @param pkgInfo The package info of the application.
      */
     private fun getSignatureHash(pkgInfo: PackageInfo): String? {
-        val signatures = pkgInfo.signingInfo.signingCertificateHistory
+        val signatures = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            pkgInfo.signingInfo.signingCertificateHistory
+        } else {
+            pkgInfo.signatures
+        }
+
         return if (signatures != null && signatures.isNotEmpty()) {
             Hash.sha256(signatures.first().toByteArray())
         } else {
