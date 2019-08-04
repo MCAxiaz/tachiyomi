@@ -364,12 +364,7 @@ open class BrowseCataloguePresenter(
      */
     fun updateMangaCategories(manga: Manga, selectedCategories: List<Category>) {
         if (!selectedCategories.isEmpty()) {
-            if (!manga.favorite)
-                changeMangaFavorite(manga)
-
             moveMangaToCategories(manga, selectedCategories.filter { it.id != 0 })
-        } else {
-            changeMangaFavorite(manga)
         }
     }
 
