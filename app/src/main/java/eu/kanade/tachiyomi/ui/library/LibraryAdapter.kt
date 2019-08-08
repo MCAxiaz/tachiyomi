@@ -77,7 +77,8 @@ class LibraryAdapter(private val controller: LibraryController) : RecyclerViewPa
      * @return the title to display.
      */
     override fun getPageTitle(position: Int): CharSequence {
-        return categories[position].name
+
+        return "${categories[position].name} (${controller.mangaCount[position]})"
     }
 
     /**
