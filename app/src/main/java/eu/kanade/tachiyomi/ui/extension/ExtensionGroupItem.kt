@@ -4,7 +4,6 @@ import android.view.View
 import eu.davidea.flexibleadapter.FlexibleAdapter
 import eu.davidea.flexibleadapter.items.AbstractHeaderItem
 import eu.kanade.tachiyomi.R
-import java.util.Objects
 
 /**
  * Item that contains the extension group header.
