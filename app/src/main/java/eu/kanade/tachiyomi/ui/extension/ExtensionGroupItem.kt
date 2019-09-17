@@ -47,7 +47,9 @@ data class ExtensionGroupItem(val installed: Boolean, val size: Int, val lang: S
     }
 
     override fun hashCode(): Int {
-        return Objects.hash(installed, lang)
+        var result = installed.hashCode()
+        result = 31 * result + (lang?.hashCode() ?: 0)
+        return result
     }
 
 }
