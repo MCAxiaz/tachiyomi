@@ -1,13 +1,10 @@
 package eu.kanade.tachiyomi.ui.extension
 
-import android.app.Application
 import android.os.Bundle
-import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.extension.model.Extension
 import eu.kanade.tachiyomi.extension.model.InstallStep
 import eu.kanade.tachiyomi.ui.base.presenter.BasePresenter
-import eu.kanade.tachiyomi.util.LocaleHelper
 import rx.Observable
 import rx.Subscription
 import rx.android.schedulers.AndroidSchedulers
@@ -52,8 +49,6 @@ open class ExtensionPresenter(
 
     @Synchronized
     private fun toItems(tuple: ExtensionTuple): List<ExtensionItem> {
-        val context = Injekt.get<Application>()
-
         val (installed, untrusted, available) = tuple
 
         val items = mutableListOf<ExtensionItem>()
@@ -67,7 +62,7 @@ open class ExtensionPresenter(
                 .sortedBy { it.pkgName }
 
         if (installedSorted.isNotEmpty() || untrustedSorted.isNotEmpty()) {
-            val header = ExtensionGroupItem(context.getString(R.string.ext_installed), installedSorted.size + untrustedSorted.size)
+            val header = ExtensionGroupItem(true, installedSorted.size + untrustedSorted.size)
             items += installedSorted.map { extension ->
                 ExtensionItem(extension, header, currentDownloads[extension.pkgName])
             }
@@ -76,13 +71,10 @@ open class ExtensionPresenter(
             }
         }
         if (availableSorted.isNotEmpty()) {
-            val availableGroupedByLang = availableSorted
-                    .groupBy { LocaleHelper.getDisplayName(it.lang, context) }
-                    .toSortedMap()
-
-            availableGroupedByLang
+            availableSorted
+                    .groupBy { it.lang }
                     .forEach {
-                        val header = ExtensionGroupItem(it.key, it.value.size)
+                        val header = ExtensionGroupItem(false, it.value.size, it.key)
                         items += it.value.map { extension ->
                             ExtensionItem(extension, header, currentDownloads[extension.pkgName])
                         }
