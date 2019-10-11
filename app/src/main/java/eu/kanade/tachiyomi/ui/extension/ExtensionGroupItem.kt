@@ -12,7 +12,7 @@ import eu.kanade.tachiyomi.R
  * @param size Number of extensions in this group
  * @param lang Language tag of the extension group
  */
-data class ExtensionGroupItem(val installed: Boolean, val size: Int, val lang: String? = null) : AbstractHeaderItem<ExtensionGroupHolder>() {
+data class ExtensionGroupItem(val installed: Boolean, var size: Int, val lang: String? = null) : AbstractHeaderItem<ExtensionGroupHolder>() {
 
     /**
      * Returns the layout resource of this item.
