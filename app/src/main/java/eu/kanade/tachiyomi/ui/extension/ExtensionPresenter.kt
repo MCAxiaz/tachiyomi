@@ -1,6 +1,8 @@
 package eu.kanade.tachiyomi.ui.extension
 
 import android.os.Bundle
+import eu.kanade.tachiyomi.data.preference.PreferencesHelper
+import eu.kanade.tachiyomi.data.preference.getOrDefault
 import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.extension.model.Extension
 import eu.kanade.tachiyomi.extension.model.InstallStep
@@ -19,7 +21,8 @@ private typealias ExtensionTuple
  * Presenter of [ExtensionController].
  */
 open class ExtensionPresenter(
-        private val extensionManager: ExtensionManager = Injekt.get()
+        private val extensionManager: ExtensionManager = Injekt.get(),
+        private val preferences: PreferencesHelper = Injekt.get()
 ) : BasePresenter<ExtensionController>() {
 
     private var extensions = emptyList<Pair<ExtensionGroupItem, List<ExtensionItem>>>()
@@ -78,6 +81,9 @@ open class ExtensionPresenter(
         if (availableSorted.isNotEmpty()) {
             availableSorted
                     .groupBy { it.lang }
+                    .filter {
+                        it.key in preferences.enabledLanguages().getOrDefault() || it.key == "all"
+                    }
                     .forEach {
                         val header = ExtensionGroupItem(false, it.value.size, it.key)
                         val langItems = mutableListOf<ExtensionItem>()
