@@ -1,13 +1,12 @@
 package eu.kanade.tachiyomi.ui.extension
 
-import android.app.Application
 import android.os.Bundle
-import eu.kanade.tachiyomi.R
+import eu.kanade.tachiyomi.data.preference.PreferencesHelper
+import eu.kanade.tachiyomi.data.preference.getOrDefault
 import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.extension.model.Extension
 import eu.kanade.tachiyomi.extension.model.InstallStep
 import eu.kanade.tachiyomi.ui.base.presenter.BasePresenter
-import eu.kanade.tachiyomi.util.LocaleHelper
 import rx.Observable
 import rx.Subscription
 import rx.android.schedulers.AndroidSchedulers
@@ -22,10 +21,11 @@ private typealias ExtensionTuple
  * Presenter of [ExtensionController].
  */
 open class ExtensionPresenter(
-        private val extensionManager: ExtensionManager = Injekt.get()
+        private val extensionManager: ExtensionManager = Injekt.get(),
+        private val preferences: PreferencesHelper = Injekt.get()
 ) : BasePresenter<ExtensionController>() {
 
-    private var extensions = emptyList<ExtensionItem>()
+    private var extensions = emptyList<Pair<ExtensionGroupItem, List<ExtensionItem>>>()
 
     private var currentDownloads = hashMapOf<String, InstallStep>()
 
@@ -47,16 +47,16 @@ open class ExtensionPresenter(
                 .debounce(100, TimeUnit.MILLISECONDS)
                 .map(::toItems)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeLatestCache({ view, _ -> view.setExtensions(extensions) })
+                .subscribeLatestCache({view, items ->
+                    view.setExtensions(items)
+                })
     }
 
     @Synchronized
     private fun toItems(tuple: ExtensionTuple): List<ExtensionItem> {
-        val context = Injekt.get<Application>()
-
         val (installed, untrusted, available) = tuple
 
-        val items = mutableListOf<ExtensionItem>()
+        val items = mutableListOf<Pair<ExtensionGroupItem, List<ExtensionItem>>>()
 
         val installedSorted = installed.sortedWith(compareBy({ !it.hasUpdate }, { it.pkgName }))
         val untrustedSorted = untrusted.sortedBy { it.pkgName }
@@ -67,46 +67,59 @@ open class ExtensionPresenter(
                 .sortedBy { it.pkgName }
 
         if (installedSorted.isNotEmpty() || untrustedSorted.isNotEmpty()) {
-            val header = ExtensionGroupItem(context.getString(R.string.ext_installed), installedSorted.size + untrustedSorted.size)
-            items += installedSorted.map { extension ->
-                ExtensionItem(extension, header, currentDownloads[extension.pkgName])
+            val header = ExtensionGroupItem(true, installedSorted.size + untrustedSorted.size)
+            val installedItems = mutableListOf<ExtensionItem>()
+            items += Pair(header, installedItems)
+
+            installedItems += installedSorted.map { extension ->
+                ExtensionItem(extension, header)
             }
-            items += untrustedSorted.map { extension ->
+            installedItems += untrustedSorted.map { extension ->
                 ExtensionItem(extension, header)
             }
         }
         if (availableSorted.isNotEmpty()) {
-            val availableGroupedByLang = availableSorted
-                    .groupBy { LocaleHelper.getDisplayName(it.lang, context) }
-                    .toSortedMap()
-
-            availableGroupedByLang
+            availableSorted
+                    .groupBy { it.lang }
+                    .filter {
+                        it.key in preferences.enabledLanguages().getOrDefault() || it.key == "all"
+                    }
                     .forEach {
-                        val header = ExtensionGroupItem(it.key, it.value.size)
-                        items += it.value.map { extension ->
+                        val header = ExtensionGroupItem(false, it.value.size, it.key)
+                        val langItems = mutableListOf<ExtensionItem>()
+                        items += Pair(header, langItems)
+
+                        langItems += it.value.map { extension ->
                             ExtensionItem(extension, header, currentDownloads[extension.pkgName])
                         }
                     }
         }
 
         this.extensions = items
-        return items
+        return extensionsAsList()
+    }
+
+    fun getFilteredExtensions(query: String): List<ExtensionItem> {
+        return extensions.flatMap {
+            val filteredItems = it.second.filter { extensionItem ->
+                extensionItem.extension.name.contains(query, true)
+            }
+            it.first.size = filteredItems.size
+            filteredItems
+        }
+    }
+
+    private fun extensionsAsList(): List<ExtensionItem> {
+        return extensions.flatMap {
+            it.second
+        }
     }
 
     @Synchronized
     private fun updateInstallStep(extension: Extension, state: InstallStep): ExtensionItem? {
-        val extensions = extensions.toMutableList()
-        val position = extensions.indexOfFirst { it.extension.pkgName == extension.pkgName }
-
-        return if (position != -1) {
-            val item = extensions[position].copy(installStep = state)
-            extensions[position] = item
-
-            this.extensions = extensions
-            item
-        } else {
-            null
-        }
+        return extensionsAsList().find {
+            it.extension.pkgName == extension.pkgName
+        }?.copy(installStep = state)
     }
 
     fun installExtension(extension: Extension.Available) {
@@ -123,7 +136,7 @@ open class ExtensionPresenter(
                 .map { state -> updateInstallStep(extension, state) }
                 .subscribeWithView({ view, item ->
                     if (item != null) {
-                        view.downloadUpdate(item)
+                        view.updateInstallStep(item)
                     }
                 })
     }

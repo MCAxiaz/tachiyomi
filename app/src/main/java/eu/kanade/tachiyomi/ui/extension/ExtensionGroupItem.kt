@@ -6,12 +6,13 @@ import eu.davidea.flexibleadapter.items.AbstractHeaderItem
 import eu.kanade.tachiyomi.R
 
 /**
- * Item that contains the group header.
+ * Item that contains the extension group header.
  *
- * @param name The header name.
- * @param size The number of items in the group.
+ * @param installed For installed or uninstalled extensions
+ * @param size Number of extensions in this group
+ * @param lang Language tag of the extension group
  */
-data class ExtensionGroupItem(val name: String, val size: Int) : AbstractHeaderItem<ExtensionGroupHolder>() {
+data class ExtensionGroupItem(val installed: Boolean, var size: Int, val lang: String? = null) : AbstractHeaderItem<ExtensionGroupHolder>() {
 
     /**
      * Returns the layout resource of this item.
@@ -39,13 +40,15 @@ data class ExtensionGroupItem(val name: String, val size: Int) : AbstractHeaderI
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other is ExtensionGroupItem) {
-            return name == other.name
+            return installed == other.installed && lang == other.lang
         }
         return false
     }
 
     override fun hashCode(): Int {
-        return name.hashCode()
+        var result = installed.hashCode()
+        result = 31 * result + (lang?.hashCode() ?: 0)
+        return result
     }
 
 }

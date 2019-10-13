@@ -1,16 +1,26 @@
 package eu.kanade.tachiyomi.ui.extension
 
 import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.SearchView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import com.bluelinelabs.conductor.ControllerChangeHandler
+import com.bluelinelabs.conductor.ControllerChangeType
+import com.bluelinelabs.conductor.RouterTransaction
+import com.bluelinelabs.conductor.changehandler.FadeChangeHandler
 import com.jakewharton.rxbinding.support.v4.widget.refreshes
+import com.jakewharton.rxbinding.support.v7.widget.queryTextChanges
 import eu.davidea.flexibleadapter.FlexibleAdapter
 import eu.davidea.flexibleadapter.items.IFlexible
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.extension.model.Extension
 import eu.kanade.tachiyomi.ui.base.controller.NucleusController
 import eu.kanade.tachiyomi.ui.base.controller.withFadeTransaction
+import eu.kanade.tachiyomi.ui.setting.SettingsExtensionsController
 import kotlinx.android.synthetic.main.extension_controller.*
 
 
@@ -48,9 +58,6 @@ open class ExtensionController : NucleusController<ExtensionPresenter>(),
         super.onViewCreated(view)
 
         ext_swipe_refresh.isRefreshing = true
-        ext_swipe_refresh.refreshes().subscribeUntilDestroy {
-            presenter.findAvailableExtensions()
-        }
 
         // Initialize adapter, scroll listener and recycler views
         adapter = ExtensionAdapter(this)
@@ -63,6 +70,38 @@ open class ExtensionController : NucleusController<ExtensionPresenter>(),
     override fun onDestroyView(view: View) {
         adapter = null
         super.onDestroyView(view)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.extensions, menu)
+
+        // Initialize search option.
+        val searchItem = menu.findItem(R.id.action_search)
+        val searchView = searchItem.actionView as SearchView
+
+        // Create query listener which opens the global search view.
+        searchView.queryTextChanges()
+                .skip(1)
+                .subscribeUntilDestroy {
+                    filterExtensions(it.toString())
+                }
+
+        ext_swipe_refresh.refreshes().subscribeUntilDestroy {
+            searchItem.collapseActionView()
+            presenter.findAvailableExtensions()
+        }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.action_settings -> {
+                router.pushController((RouterTransaction.with(SettingsExtensionsController()))
+                        .popChangeHandler(SettingsExtensionsFadeChangeHandler())
+                        .pushChangeHandler(FadeChangeHandler()))
+            }
+            else -> return super.onOptionsItemSelected(item)
+        }
+        return true
     }
 
     override fun onButtonClick(position: Int) {
@@ -102,6 +141,13 @@ open class ExtensionController : NucleusController<ExtensionPresenter>(),
         }
     }
 
+    override fun onChangeStarted(handler: ControllerChangeHandler, type: ControllerChangeType) {
+        super.onChangeStarted(handler, type)
+        if (!type.isPush && handler is SettingsExtensionsFadeChangeHandler) {
+            presenter.findAvailableExtensions()
+        }
+    }
+
     private fun openDetails(extension: Extension.Installed) {
         val controller = ExtensionDetailsController(extension.pkgName)
         router.pushController(controller.withFadeTransaction())
@@ -117,7 +163,11 @@ open class ExtensionController : NucleusController<ExtensionPresenter>(),
         adapter?.updateDataSet(extensions)
     }
 
-    fun downloadUpdate(item: ExtensionItem) {
+    private fun filterExtensions(query: String) {
+        adapter?.updateDataSet(presenter.getFilteredExtensions(query))
+    }
+
+    fun updateInstallStep(item: ExtensionItem) {
         adapter?.updateItem(item, item.installStep)
     }
 
@@ -129,4 +179,5 @@ open class ExtensionController : NucleusController<ExtensionPresenter>(),
         presenter.uninstallExtension(pkgName)
     }
 
+    class SettingsExtensionsFadeChangeHandler : FadeChangeHandler()
 }
