@@ -17,7 +17,7 @@ class LibraryAdapter(private val controller: LibraryController) : RecyclerViewPa
     /**
      * The categories to bind in the adapter.
      */
-    var categories: List<Category> = emptyList()
+    var categories: List<Pair<Category, Int>> = emptyList()
         // This setter helps to not refresh the adapter if the reference to the list doesn't change.
         set(value) {
             if (field !== value) {
@@ -46,7 +46,7 @@ class LibraryAdapter(private val controller: LibraryController) : RecyclerViewPa
      * @param position the position in the adapter.
      */
     override fun bindView(view: View, position: Int) {
-        (view as LibraryCategoryView).onBind(categories[position])
+        (view as LibraryCategoryView).onBind(categories[position].first)
         boundViews.add(view)
     }
 
@@ -77,8 +77,9 @@ class LibraryAdapter(private val controller: LibraryController) : RecyclerViewPa
      * @return the title to display.
      */
     override fun getPageTitle(position: Int): CharSequence {
+        val category = categories[position]
 
-        return "${categories[position].name} (${controller.mangaCount[position]})"
+        return "${category.first.name} (${category.second})"
     }
 
     /**
@@ -86,7 +87,7 @@ class LibraryAdapter(private val controller: LibraryController) : RecyclerViewPa
      */
     override fun getItemPosition(obj: Any): Int {
         val view = obj as? LibraryCategoryView ?: return POSITION_NONE
-        val index = categories.indexOfFirst { it.id == view.category.id }
+        val index = categories.indexOfFirst { it.first.id == view.category.id }
         return if (index == -1) POSITION_NONE else index
     }
 

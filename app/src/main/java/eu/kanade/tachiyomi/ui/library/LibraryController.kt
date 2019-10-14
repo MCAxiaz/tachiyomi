@@ -99,12 +99,6 @@ class LibraryController(
         private set
 
     /**
-     * Number of manga in each library category
-     */
-    var mangaCount = emptyList<Int>()
-        private set
-
-    /**
      * Adapter of the view pager.
      */
     private var adapter: LibraryAdapter? = null
@@ -226,8 +220,6 @@ class LibraryController(
         val view = view ?: return
         val adapter = adapter ?: return
 
-        mangaCount = categories.map { category -> (mangaMap[category.id]?.size ?: 0) }
-
         // Show empty view if needed
         if (mangaMap.isNotEmpty()) {
             empty_view.hide()
@@ -242,7 +234,9 @@ class LibraryController(
             activeCategory
 
         // Set the categories
-        adapter.categories = categories
+        adapter.categories = categories.map {
+            category -> category to (mangaMap[category.id]?.size ?: 0)
+        }
 
         // Restore active category.
         library_pager.setCurrentItem(activeCat, false)
