@@ -83,7 +83,8 @@ open class ExtensionController : NucleusController<ExtensionPresenter>(),
         searchView.queryTextChanges()
                 .skip(1)
                 .subscribeUntilDestroy {
-                    filterExtensions(it.toString())
+                    adapter?.searchText = it.toString()
+                    setExtensions()
                 }
 
         ext_swipe_refresh.refreshes().subscribeUntilDestroy {
@@ -158,13 +159,9 @@ open class ExtensionController : NucleusController<ExtensionPresenter>(),
                 .showDialog(router)
     }
 
-    fun setExtensions(extensions: List<ExtensionItem>) {
+    fun setExtensions() {
         ext_swipe_refresh?.isRefreshing = false
-        adapter?.updateDataSet(extensions)
-    }
-
-    private fun filterExtensions(query: String) {
-        adapter?.updateDataSet(presenter.getFilteredExtensions(query))
+        adapter?.updateDataSet(presenter.getFilteredExtensions(adapter?.searchText ?: ""))
     }
 
     fun updateInstallStep(item: ExtensionItem) {
