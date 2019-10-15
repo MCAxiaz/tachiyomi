@@ -117,6 +117,8 @@ open class ExtensionPresenter(
 
     @Synchronized
     private fun updateInstallStep(extension: Extension, state: InstallStep): ExtensionItem? {
+        if (state == InstallStep.Installed) return null
+
         return extensionsAsList().find {
             it.extension.pkgName == extension.pkgName
         }?.copy(installStep = state)
