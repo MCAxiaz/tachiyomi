@@ -47,8 +47,8 @@ open class ExtensionPresenter(
                 .debounce(100, TimeUnit.MILLISECONDS)
                 .map(::toItems)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeLatestCache({view, items ->
-                    view.setExtensions(items)
+                .subscribeLatestCache({view, _ ->
+                    view.setExtensions()
                 })
     }
 
