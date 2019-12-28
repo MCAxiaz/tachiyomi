@@ -100,10 +100,9 @@ class ReaderPresenter(
                     dbChapters
                 }
 
-        when (manga.sorting) {
-            Manga.SORTING_SOURCE -> ChapterLoadBySource().get(chaptersForReader)
-            Manga.SORTING_NUMBER -> ChapterLoadByNumber().get(chaptersForReader, selectedChapter)
-            else -> error("Unknown sorting method")
+        when (preferences.optimizeChapterOrder()) {
+            true -> ChapterLoadByNumber.get(chaptersForReader, selectedChapter)
+            false -> ChapterLoadBySource.get(chaptersForReader)
         }.map(::ReaderChapter)
     }
 

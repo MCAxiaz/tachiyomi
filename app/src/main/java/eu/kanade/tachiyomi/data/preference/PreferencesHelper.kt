@@ -41,6 +41,8 @@ class PreferencesHelper(val context: Context) {
 
     fun doubleTapAnimSpeed() = rxPrefs.getInteger(Keys.doubleTapAnimationSpeed, 500)
 
+    fun optimizeChapterOrder() = prefs.getBoolean(Keys.optimizeChapterOrder, true)
+
     fun showPageNumber() = rxPrefs.getBoolean(Keys.showPageNumber, true)
 
     fun trueColor() = rxPrefs.getBoolean(Keys.trueColor, false)

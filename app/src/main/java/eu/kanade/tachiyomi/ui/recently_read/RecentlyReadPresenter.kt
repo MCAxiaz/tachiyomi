@@ -5,12 +5,16 @@ import eu.kanade.tachiyomi.data.database.DatabaseHelper
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.History
 import eu.kanade.tachiyomi.data.database.models.Manga
+import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.ui.base.presenter.BasePresenter
+import eu.kanade.tachiyomi.ui.reader.ChapterLoadByNumber
+import eu.kanade.tachiyomi.ui.reader.ChapterLoadBySource
 import rx.Observable
 import rx.android.schedulers.AndroidSchedulers
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
 import java.util.Calendar
-import java.util.Comparator
 import java.util.Date
 
 /**
@@ -18,7 +22,9 @@ import java.util.Date
  * Contains information and data for fragment.
  * Observable updates should be called from here.
  */
-class RecentlyReadPresenter : BasePresenter<RecentlyReadController>() {
+class RecentlyReadPresenter(
+        private val preferences: PreferencesHelper = Injekt.get()
+) : BasePresenter<RecentlyReadController>() {
 
     /**
      * Used to connect to database
@@ -82,28 +88,11 @@ class RecentlyReadPresenter : BasePresenter<RecentlyReadController>() {
             return chapter
         }
 
-        val sortFunction: (Chapter, Chapter) -> Int = when (manga.sorting) {
-            Manga.SORTING_SOURCE -> { c1, c2 -> c2.source_order.compareTo(c1.source_order) }
-            Manga.SORTING_NUMBER -> { c1, c2 -> c1.chapter_number.compareTo(c2.chapter_number) }
-            else -> throw NotImplementedError("Unknown sorting method")
-        }
+        val allChapters = db.getChapters(manga).executeAsBlocking()
 
-        val chapters = db.getChapters(manga).executeAsBlocking()
-                .sortedWith(Comparator<Chapter> { c1, c2 -> sortFunction(c1, c2) })
-
-        val currChapterIndex = chapters.indexOfFirst { chapter.id == it.id }
-        return when (manga.sorting) {
-            Manga.SORTING_SOURCE -> chapters.getOrNull(currChapterIndex + 1)
-            Manga.SORTING_NUMBER -> {
-                val chapterNumber = chapter.chapter_number
-
-                ((currChapterIndex + 1) until chapters.size)
-                        .map { chapters[it] }
-                        .firstOrNull { it.chapter_number > chapterNumber &&
-                                it.chapter_number <= chapterNumber + 1
-                        }
-            }
-            else -> throw NotImplementedError("Unknown sorting method")
+        return when (preferences.optimizeChapterOrder()) {
+            true -> ChapterLoadByNumber.getNextChapter(allChapters, chapter)
+            false -> ChapterLoadBySource.getNextChapter(allChapters, chapter)
         }
     }
 

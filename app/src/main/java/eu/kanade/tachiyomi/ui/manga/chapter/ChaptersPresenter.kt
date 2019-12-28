@@ -185,16 +185,15 @@ class ChaptersPresenter(
         if (onlyBookmarked()) {
             observable = observable.filter { it.bookmark }
         }
-        val sortFunction: (Chapter, Chapter) -> Int = when (manga.sorting) {
-            Manga.SORTING_SOURCE -> when (sortDescending()) {
-                true -> { c1, c2 -> c1.source_order.compareTo(c2.source_order) }
-                false -> { c1, c2 -> c2.source_order.compareTo(c1.source_order) }
-            }
-            Manga.SORTING_NUMBER -> when (sortDescending()) {
+        val sortFunction: (Chapter, Chapter) -> Int = when (preferences.optimizeChapterOrder()) {
+            true -> when (sortDescending()) {
                 true -> { c1, c2 -> c2.chapter_number.compareTo(c1.chapter_number) }
                 false -> { c1, c2 -> c1.chapter_number.compareTo(c2.chapter_number) }
             }
-            else -> throw NotImplementedError("Unimplemented sorting method")
+            false -> when (sortDescending()) {
+                true -> { c1, c2 -> c1.source_order.compareTo(c2.source_order) }
+                false -> { c1, c2 -> c2.source_order.compareTo(c1.source_order) }
+            }
         }
         return observable.toSortedList(sortFunction)
     }
@@ -368,16 +367,6 @@ class ChaptersPresenter(
     fun setDisplayMode(mode: Int) {
         manga.displayMode = mode
         db.updateFlags(manga).executeAsBlocking()
-    }
-
-    /**
-     * Sets the sorting method and requests an UI update.
-     * @param sort the sorting mode.
-     */
-    fun setSorting(sort: Int) {
-        manga.sorting = sort
-        db.updateFlags(manga).executeAsBlocking()
-        refreshChapters()
     }
 
     /**
