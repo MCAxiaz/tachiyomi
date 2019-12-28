@@ -35,7 +35,6 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
         FlexibleAdapter.OnItemLongClickListener,
         ChaptersAdapter.OnMenuItemClickListener,
         SetDisplayModeDialog.Listener,
-        SetSortingDialog.Listener,
         DownloadChaptersDialog.Listener,
         DownloadCustomChaptersDialog.Listener,
         DeleteChaptersDialog.Listener {
@@ -152,7 +151,6 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
         when (item.itemId) {
             R.id.action_display_mode -> showDisplayModeDialog()
             R.id.manga_download -> showDownloadDialog()
-            R.id.action_sorting_mode -> showSortingDialog()
             R.id.action_filter_unread -> {
                 item.isChecked = !item.isChecked
                 presenter.setUnreadFilter(item.isChecked)
@@ -428,15 +426,6 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
     override fun setDisplayMode(id: Int) {
         presenter.setDisplayMode(id)
         adapter?.notifyDataSetChanged()
-    }
-
-    private fun showSortingDialog() {
-        val preselected = if (presenter.manga.sorting == Manga.SORTING_SOURCE) 0 else 1
-        SetSortingDialog(this, preselected).showDialog(router)
-    }
-
-    override fun setSorting(id: Int) {
-        presenter.setSorting(id)
     }
 
     private fun showDownloadDialog() {

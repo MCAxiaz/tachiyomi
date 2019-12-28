@@ -5,32 +5,55 @@ import eu.kanade.tachiyomi.data.database.models.Chapter
 /**
  * Load strategy using the source order. This is the default ordering.
  */
-class ChapterLoadBySource {
+object ChapterLoadBySource {
     fun get(allChapters: List<Chapter>): List<Chapter> {
         return allChapters.sortedByDescending { it.source_order }
+    }
+
+    fun getNextChapter(allChapters: List<Chapter>, selectedChapter: Chapter): Chapter? {
+        return allChapters.sortedByDescending {
+            it.source_order
+        }.find {
+            it.chapter_number > selectedChapter.chapter_number
+        }
     }
 }
 
 /**
  * Load strategy using unique chapter numbers with same scanlator preference.
  */
-class ChapterLoadByNumber {
+object ChapterLoadByNumber {
     fun get(allChapters: List<Chapter>, selectedChapter: Chapter): List<Chapter> {
-        val chapters = mutableListOf<Chapter>()
         val chaptersByNumber = allChapters.groupBy { it.chapter_number }
 
-        for ((number, chaptersForNumber) in chaptersByNumber) {
-            val preferredChapter = when {
+        return chaptersByNumber.map { chaptersForNumber ->
+            val chapterNumber = chaptersForNumber.key
+            val chapters = chaptersForNumber.value
+            when (chapterNumber) {
                 // Make sure the selected chapter is always present
-                number == selectedChapter.chapter_number -> selectedChapter
-                // If there is only one chapter for this number, use it
-                chaptersForNumber.size == 1 -> chaptersForNumber.first()
+                selectedChapter.chapter_number -> selectedChapter
                 // Prefer a chapter of the same scanlator as the selected
-                else -> chaptersForNumber.find { it.scanlator == selectedChapter.scanlator }
-                        ?: chaptersForNumber.first()
+                else -> chapters.find { it.scanlator == selectedChapter.scanlator }
+                        ?: chapters.first()
             }
-            chapters.add(preferredChapter)
+        }.sortedBy { it.chapter_number }
+    }
+
+    fun getNextChapter(allChapters: List<Chapter>, selectedChapter: Chapter): Chapter? {
+        var potentialNextChapters = allChapters.filter {
+            it.chapter_number > selectedChapter.chapter_number
         }
-        return chapters.sortedBy { it.chapter_number }
+
+        val nextChapterNumber = potentialNextChapters.minBy {
+            it.chapter_number
+        } ?: return null
+
+        potentialNextChapters = potentialNextChapters.filter {
+            it.chapter_number == nextChapterNumber.chapter_number
+        }
+
+        return potentialNextChapters.find {
+            it.scanlator == selectedChapter.scanlator
+        } ?: potentialNextChapters.first()
     }
 }

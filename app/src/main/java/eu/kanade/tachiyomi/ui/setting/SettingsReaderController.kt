@@ -64,6 +64,12 @@ class SettingsReaderController : SettingsController() {
             summary = "%s"
         }
         switchPreference {
+            key = Keys.optimizeChapterOrder
+            titleRes = R.string.pref_optimize_chapter_order
+            defaultValue = true
+            summaryRes = R.string.pref_optimize_chapter_order_summary
+        }
+        switchPreference {
             key = Keys.skipRead
             titleRes = R.string.pref_skip_read_chapters
             defaultValue = false

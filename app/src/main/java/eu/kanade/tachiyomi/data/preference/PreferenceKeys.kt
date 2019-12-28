@@ -13,6 +13,8 @@ object PreferenceKeys {
 
     const val doubleTapAnimationSpeed = "pref_double_tap_anim_speed"
 
+    const val optimizeChapterOrder = "pref_optimize_chapter_order"
+
     const val showPageNumber = "pref_show_page_number_key"
 
     const val trueColor = "pref_true_color_key"
