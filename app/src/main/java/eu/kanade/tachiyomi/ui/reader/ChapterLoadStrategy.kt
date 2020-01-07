@@ -11,11 +11,10 @@ object ChapterLoadBySource {
     }
 
     fun getNextChapter(allChapters: List<Chapter>, selectedChapter: Chapter): Chapter? {
-        return allChapters.sortedByDescending {
-            it.source_order
-        }.find {
-            it.chapter_number > selectedChapter.chapter_number
-        }
+        val nextSourceOrder = selectedChapter.source_order - 1
+        return if (nextSourceOrder >= 0)
+            allChapters.find { it.source_order == nextSourceOrder }
+        else null
     }
 }
 
