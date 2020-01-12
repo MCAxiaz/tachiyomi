@@ -5,12 +5,12 @@ import android.animation.AnimatorListenerAdapter
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
-import android.support.design.widget.Snackbar
-import android.support.v7.app.AppCompatActivity
-import android.support.v7.view.ActionMode
-import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.LinearLayoutManager
 import android.view.*
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.ActionMode
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.snackbar.Snackbar
 import com.jakewharton.rxbinding.support.v4.widget.refreshes
 import com.jakewharton.rxbinding.view.clicks
 import eu.davidea.flexibleadapter.FlexibleAdapter
@@ -53,6 +53,8 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
      * Selected items. Used to restore selections after a rotation.
      */
     private val selectedItems = mutableSetOf<ChapterItem>()
+
+    private var lastClickPosition = -1
 
     init {
         setHasOptionsMenu(true)
@@ -182,8 +184,9 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
     fun onNextChapters(chapters: List<ChapterItem>) {
         // If the list is empty, fetch chapters from source if the conditions are met
         // We use presenter chapters instead because they are always unfiltered
-        if (presenter.chapters.isEmpty())
+        if (presenter.chapters.isEmpty()) {
             initialFetchChapters()
+        }
 
         val adapter = adapter ?: return
         adapter.updateDataSet(chapters)
@@ -240,10 +243,11 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
         startActivity(intent)
     }
 
-    override fun onItemClick(position: Int): Boolean {
+    override fun onItemClick(view: View?, position: Int): Boolean {
         val adapter = adapter ?: return false
         val item = adapter.getItem(position) ?: return false
         if (actionMode != null && adapter.mode == SelectableAdapter.Mode.MULTI) {
+            lastClickPosition = position
             toggleSelection(position)
             return true
         } else {
@@ -254,7 +258,16 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
 
     override fun onItemLongClick(position: Int) {
         createActionModeIfNeeded()
-        toggleSelection(position)
+        when {
+            lastClickPosition == -1 -> setSelection(position)
+            lastClickPosition > position -> for (i in position until lastClickPosition)
+                setSelection(i)
+            lastClickPosition < position -> for (i in lastClickPosition + 1..position)
+                setSelection(i)
+            else -> setSelection(position)
+        }
+        lastClickPosition = position
+        adapter?.notifyDataSetChanged()
     }
 
     // SELECTIONS & ACTION MODE
@@ -263,12 +276,23 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
         val adapter = adapter ?: return
         val item = adapter.getItem(position) ?: return
         adapter.toggleSelection(position)
+        adapter.notifyDataSetChanged()
         if (adapter.isSelected(position)) {
             selectedItems.add(item)
         } else {
             selectedItems.remove(item)
         }
         actionMode?.invalidate()
+    }
+
+    private fun setSelection(position: Int) {
+        val adapter = adapter ?: return
+        val item = adapter.getItem(position) ?: return
+        if (!adapter.isSelected(position)) {
+            adapter.toggleSelection(position)
+            selectedItems.add(item)
+            actionMode?.invalidate()
+        }
     }
 
     private fun getSelectedChapters(): List<ChapterItem> {
@@ -283,6 +307,7 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
     }
 
     private fun destroyActionModeIfNeeded() {
+        lastClickPosition = -1
         actionMode?.finish()
     }
 
@@ -371,7 +396,6 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
         }
     }
 
-
     private fun showDeleteChaptersConfirmationDialog() {
         DeleteChaptersDialog(this).showDialog(router)
     }
@@ -402,8 +426,12 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
         presenter.deleteChapters(chapters)
     }
 
-    fun onChaptersDeleted() {
+    fun onChaptersDeleted(chapters: List<ChapterItem>) {
         dismissDeletingDialog()
+        //this is needed so the downloaded text gets removed from the item
+        chapters.forEach {
+            adapter?.updateItem(it)
+        }
         adapter?.notifyDataSetChanged()
     }
 

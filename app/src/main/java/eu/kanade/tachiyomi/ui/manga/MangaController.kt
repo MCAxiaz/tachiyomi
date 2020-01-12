@@ -2,8 +2,8 @@ package eu.kanade.tachiyomi.ui.manga
 
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.os.Bundle
-import android.support.design.widget.TabLayout
-import android.support.graphics.drawable.VectorDrawableCompat
+import com.google.android.material.tabs.TabLayout
+import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -135,13 +135,12 @@ class MangaController : RxController, TabbedController {
     }
 
     private fun setTrackingIconInternal(visible: Boolean) {
-        activity?.tabs?.getTabAt(TRACK_CONTROLLER) ?: return
+        val tab = activity?.tabs?.getTabAt(TRACK_CONTROLLER) ?: return
         val drawable = if (visible)
             VectorDrawableCompat.create(resources!!, R.drawable.ic_done_white_18dp, null)
         else null
 
-        val tabStrip = activity?.tabs?.getChildAt(0) as LinearLayout
-        val view = tabStrip.getChildAt(TRACK_CONTROLLER) as LinearLayout
+        val view = tabField.get(tab) as LinearLayout
         val textView = view.getChildAt(1) as TextView
         textView.setCompoundDrawablesWithIntrinsicBounds(null, null, drawable, null)
         textView.compoundDrawablePadding = if (visible) 4 else 0
@@ -180,14 +179,15 @@ class MangaController : RxController, TabbedController {
     }
 
     companion object {
-
         const val FROM_CATALOGUE_EXTRA = "from_catalogue"
         const val MANGA_EXTRA = "manga"
 
         const val INFO_CONTROLLER = 0
         const val CHAPTERS_CONTROLLER = 1
         const val TRACK_CONTROLLER = 2
-    }
 
+        private val tabField = TabLayout.Tab::class.java.getDeclaredField("view")
+                .apply { isAccessible = true }
+    }
 
 }
