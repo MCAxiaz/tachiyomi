@@ -37,6 +37,8 @@ open class ExtensionController : NucleusController<ExtensionPresenter>(),
      */
     private var adapter: FlexibleAdapter<IFlexible<*>>? = null
 
+    private var query = ""
+
     init {
         setHasOptionsMenu(true)
     }
@@ -57,6 +59,9 @@ open class ExtensionController : NucleusController<ExtensionPresenter>(),
         super.onViewCreated(view)
 
         ext_swipe_refresh.isRefreshing = true
+        ext_swipe_refresh.refreshes().subscribeUntilDestroy {
+            presenter.findAvailableExtensions()
+        }
 
         // Initialize adapter, scroll listener and recycler views
         adapter = ExtensionAdapter(this)
@@ -78,18 +83,21 @@ open class ExtensionController : NucleusController<ExtensionPresenter>(),
         val searchItem = menu.findItem(R.id.action_search)
         val searchView = searchItem.actionView as SearchView
 
+        if (query.isNotEmpty()) {
+            searchItem.expandActionView()
+            searchView.setQuery(query, true)
+            searchView.clearFocus()
+        }
+
         // Create query listener which opens the global search view.
         searchView.queryTextChanges()
                 .skip(1)
+                .filter { router.backstack.lastOrNull()?.controller() == this }
                 .subscribeUntilDestroy {
-                    adapter?.setFilter(it.toString())
-                    setExtensions()
+                    setExtensions(it.toString())
                 }
 
-        ext_swipe_refresh.refreshes().subscribeUntilDestroy {
-            searchItem.collapseActionView()
-            presenter.findAvailableExtensions()
-        }
+        searchItem.fixExpand()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -102,6 +110,13 @@ open class ExtensionController : NucleusController<ExtensionPresenter>(),
             else -> return super.onOptionsItemSelected(item)
         }
         return true
+    }
+
+    override fun onChangeStarted(handler: ControllerChangeHandler, type: ControllerChangeType) {
+        super.onChangeStarted(handler, type)
+        if (!type.isPush && handler is SettingsExtensionsFadeChangeHandler) {
+            presenter.findAvailableExtensions()
+        }
     }
 
     override fun onButtonClick(position: Int) {
@@ -141,13 +156,6 @@ open class ExtensionController : NucleusController<ExtensionPresenter>(),
         }
     }
 
-    override fun onChangeStarted(handler: ControllerChangeHandler, type: ControllerChangeType) {
-        super.onChangeStarted(handler, type)
-        if (!type.isPush && handler is SettingsExtensionsFadeChangeHandler) {
-            presenter.findAvailableExtensions()
-        }
-    }
-
     private fun openDetails(extension: Extension.Installed) {
         val controller = ExtensionDetailsController(extension.pkgName)
         router.pushController(controller.withFadeTransaction())
@@ -160,7 +168,14 @@ open class ExtensionController : NucleusController<ExtensionPresenter>(),
 
     fun setExtensions() {
         ext_swipe_refresh?.isRefreshing = false
-        adapter?.updateDataSet(presenter.getFilteredExtensions(adapter?.getFilter(String::class.java) ?: ""))
+        adapter?.updateDataSet(presenter.getFilteredExtensions(query))
+    }
+
+    private fun setExtensions(query: String) {
+        if (this.query != query) {
+            this.query = query
+            setExtensions()
+        }
     }
 
     fun updateInstallStep(item: ExtensionItem) {
