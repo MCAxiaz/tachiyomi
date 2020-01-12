@@ -1,8 +1,10 @@
 package eu.kanade.tachiyomi.ui.extension
 
 import android.view.View
+import androidx.recyclerview.widget.RecyclerView
 import eu.davidea.flexibleadapter.FlexibleAdapter
 import eu.davidea.flexibleadapter.items.AbstractHeaderItem
+import eu.davidea.flexibleadapter.items.IFlexible
 import eu.kanade.tachiyomi.R
 
 /**
@@ -24,14 +26,14 @@ data class ExtensionGroupItem(val installed: Boolean, var size: Int, val lang: S
     /**
      * Creates a new view holder for this item.
      */
-    override fun createViewHolder(view: View, adapter: FlexibleAdapter<*>): ExtensionGroupHolder {
+    override fun createViewHolder(view: View, adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>): ExtensionGroupHolder {
         return ExtensionGroupHolder(view, adapter)
     }
 
     /**
      * Binds this item to the given view holder.
      */
-    override fun bindViewHolder(adapter: FlexibleAdapter<*>, holder: ExtensionGroupHolder,
+    override fun bindViewHolder(adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>, holder: ExtensionGroupHolder,
                                 position: Int, payloads: List<Any?>?) {
 
         holder.bind(this)

@@ -1,13 +1,13 @@
 package eu.kanade.tachiyomi.ui.extension
 
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.SearchView
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.appcompat.widget.SearchView
 import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import com.bluelinelabs.conductor.ControllerChangeHandler
 import com.bluelinelabs.conductor.ControllerChangeType
 import com.bluelinelabs.conductor.RouterTransaction
@@ -20,7 +20,6 @@ import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.extension.model.Extension
 import eu.kanade.tachiyomi.ui.base.controller.NucleusController
 import eu.kanade.tachiyomi.ui.base.controller.withFadeTransaction
-import eu.kanade.tachiyomi.ui.setting.SettingsExtensionsController
 import kotlinx.android.synthetic.main.extension_controller.*
 
 
@@ -73,7 +72,7 @@ open class ExtensionController : NucleusController<ExtensionPresenter>(),
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.extensions, menu)
+        inflater.inflate(R.menu.extension_main, menu)
 
         // Initialize search option.
         val searchItem = menu.findItem(R.id.action_search)
@@ -83,7 +82,7 @@ open class ExtensionController : NucleusController<ExtensionPresenter>(),
         searchView.queryTextChanges()
                 .skip(1)
                 .subscribeUntilDestroy {
-                    adapter?.searchText = it.toString()
+                    adapter?.setFilter(it.toString())
                     setExtensions()
                 }
 
@@ -96,7 +95,7 @@ open class ExtensionController : NucleusController<ExtensionPresenter>(),
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.action_settings -> {
-                router.pushController((RouterTransaction.with(SettingsExtensionsController()))
+                router.pushController((RouterTransaction.with(ExtensionFilterController()))
                         .popChangeHandler(SettingsExtensionsFadeChangeHandler())
                         .pushChangeHandler(FadeChangeHandler()))
             }
@@ -124,7 +123,7 @@ open class ExtensionController : NucleusController<ExtensionPresenter>(),
         }
     }
 
-    override fun onItemClick(position: Int): Boolean {
+    override fun onItemClick(view: View, position: Int): Boolean {
         val extension = (adapter?.getItem(position) as? ExtensionItem)?.extension ?: return false
         if (extension is Extension.Installed) {
             openDetails(extension)
@@ -161,7 +160,7 @@ open class ExtensionController : NucleusController<ExtensionPresenter>(),
 
     fun setExtensions() {
         ext_swipe_refresh?.isRefreshing = false
-        adapter?.updateDataSet(presenter.getFilteredExtensions(adapter?.searchText ?: ""))
+        adapter?.updateDataSet(presenter.getFilteredExtensions(adapter?.getFilter(String::class.java) ?: ""))
     }
 
     fun updateInstallStep(item: ExtensionItem) {
