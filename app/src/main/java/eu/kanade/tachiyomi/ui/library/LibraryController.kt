@@ -505,7 +505,7 @@ class LibraryController(
     }
 
     private fun selectAllCategoryManga() {
-        adapter?.categories?.getOrNull(library_pager.currentItem)?.id?.let {
+        adapter?.categories?.getOrNull(library_pager.currentItem)?.first?.id?.let {
             selectAllRelay.call(it)
         }
     }
