@@ -91,17 +91,17 @@ open class ExtensionController : NucleusController<ExtensionPresenter>(),
 
         // Create query listener which opens the global search view.
         searchView.queryTextChanges()
-                .skip(1)
                 .filter { router.backstack.lastOrNull()?.controller() == this }
                 .subscribeUntilDestroy {
                     setExtensions(it.toString())
                 }
 
-        searchItem.fixExpand()
+        searchItem.fixExpand(onExpand = { invalidateMenuOnExpand() })
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.action_search -> expandActionViewFromInteraction = true
             R.id.action_settings -> {
                 router.pushController((RouterTransaction.with(ExtensionFilterController()))
                         .popChangeHandler(SettingsExtensionsFadeChangeHandler())

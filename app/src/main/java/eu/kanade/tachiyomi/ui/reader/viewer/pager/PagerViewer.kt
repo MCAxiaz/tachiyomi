@@ -129,7 +129,7 @@ abstract class PagerViewer(val activity: ReaderActivity) : BaseViewer {
         if (page != null && currentPage != page) {
             currentPage = page
             when (page) {
-                is ReaderPage -> onReaderPageSelected(page, position)
+                is ReaderPage -> onReaderPageSelected(page)
                 is ChapterTransition -> onTransitionSelected(page)
             }
         }
@@ -139,16 +139,15 @@ abstract class PagerViewer(val activity: ReaderActivity) : BaseViewer {
      * Called when a [ReaderPage] is marked as active. It notifies the
      * activity of the change and requests the preload of the next chapter if this is the last page.
      */
-    private fun onReaderPageSelected(page: ReaderPage, position: Int) {
+    private fun onReaderPageSelected(page: ReaderPage) {
         val pages = page.chapter.pages!! // Won't be null because it's the loaded chapter
         Timber.d("onReaderPageSelected: ${page.number}/${pages.size}")
         activity.onPageSelected(page)
 
         if (page === pages.last()) {
             Timber.d("Request preload next chapter because we're at the last page")
-            val transition = adapter.items.getOrNull(position + 1) as? ChapterTransition.Next
-            if (transition?.to != null) {
-                activity.requestPreloadChapter(transition.to)
+            adapter.nextTransition?.to?.let {
+                activity.requestPreloadChapter(it)
             }
         }
     }
@@ -201,6 +200,7 @@ abstract class PagerViewer(val activity: ReaderActivity) : BaseViewer {
      * Tells this viewer to move to the given [page].
      */
     override fun moveToPage(page: ReaderPage) {
+        Timber.d("moveToPage ${page.number}")
         val position = adapter.items.indexOf(page)
         if (position != -1) {
             val currentPosition = pager.currentItem

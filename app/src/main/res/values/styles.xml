@@ -32,6 +32,10 @@
         <item name="colorAccent">@color/colorAccentDark</item>
     </style>
 
+    <style name="Theme.AlertDialog.Amoled" parent="Theme.AlertDialog.Dark">
+        <item name="android:background">@color/colorAmoledPrimary</item>
+    </style>
+
     <!--==============-->
     <!--NavigationView-->
     <!--==============-->
@@ -123,12 +127,6 @@
 
     <style name="TextAppearance.Medium.Body2.Hint">
         <item name="android:textColor">?android:attr/textColorHint</item>
-    </style>
-
-    <style name="TextAppearance.Medium.Button">
-        <item name="android:textSize">14sp</item>
-        <item name="android:textAllCaps">true</item>
-        <item name="android:textColor">?attr/colorAccent</item>
     </style>
 
     <!--=======-->
