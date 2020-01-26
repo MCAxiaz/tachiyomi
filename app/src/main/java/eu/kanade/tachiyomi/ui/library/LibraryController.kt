@@ -95,6 +95,11 @@ class LibraryController(
     val libraryMangaRelay: BehaviorRelay<LibraryMangaEvent> = BehaviorRelay.create()
 
     /**
+     * Relay to notify the library's viewpager to select all manga
+     */
+    val selectAllRelay: PublishRelay<Int> = PublishRelay.create()
+
+    /**
      * Number of manga per row in grid mode.
      */
     var mangaPerRow = 0
@@ -323,7 +328,7 @@ class LibraryController(
         val searchItem = menu.findItem(R.id.action_search)
         val searchView = searchItem.actionView as SearchView
 
-        if (!query.isEmpty()) {
+        if (query.isNotEmpty()) {
             searchItem.expandActionView()
             searchView.setQuery(query, true)
             searchView.clearFocus()
@@ -341,7 +346,11 @@ class LibraryController(
                     searchRelay.call(query)
                 }
 
-        searchItem.fixExpand()
+        searchItem.fixExpand(onExpand = { invalidateMenuOnExpand() })
+    }
+
+    fun search(query: String) {
+        this.query = query
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {
@@ -356,6 +365,7 @@ class LibraryController(
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.action_search -> expandActionViewFromInteraction = true
             R.id.action_filter -> {
                 navView?.let { activity?.drawer?.openDrawer(GravityCompat.END) }
             }
@@ -406,6 +416,7 @@ class LibraryController(
             }
             R.id.action_move_to_category -> showChangeMangaCategoriesDialog()
             R.id.action_delete -> showDeleteMangaDialog()
+            R.id.action_select_all -> selectAllCategoryManga()
             else -> return false
         }
         return true
@@ -490,6 +501,12 @@ class LibraryController(
                     resources?.getString(R.string.file_select_cover)), REQUEST_IMAGE_OPEN)
         } else {
             activity?.toast(R.string.notification_first_add_to_library)
+        }
+    }
+
+    private fun selectAllCategoryManga() {
+        adapter?.categories?.getOrNull(library_pager.currentItem)?.first?.id?.let {
+            selectAllRelay.call(it)
         }
     }
 
