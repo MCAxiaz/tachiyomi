@@ -208,9 +208,6 @@
     <string name="chapter_paused">Gepauzeerd</string>
     <string name="show_title">Toon titel</string>
     <string name="show_chapter_number">Toon hoofdstuknummer</string>
-    <string name="sorting_mode">Sorteermodus</string>
-    <string name="sort_by_source">Op bron</string>
-    <string name="sort_by_number">Op hoofdstuknummer</string>
     <string name="manga_download">Downloaden</string>
     <string name="download_1">Download het volgende hoofdstuk</string>
     <string name="download_5">Download de volgende 5 hoofdstukken</string>

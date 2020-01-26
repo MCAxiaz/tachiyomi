@@ -186,7 +186,8 @@ class ChaptersPresenter(
         if (onlyBookmarked()) {
             observable = observable.filter { it.bookmark }
         }
-        val sortFunction: (Chapter, Chapter) -> Int = when (preferences.optimizeChapterOrder()) {
+
+        val sortFunction: (Chapter, Chapter) -> Int = when (manga.order == Manga.ORDER_DEFAULT && preferences.optimizeChapterOrder()) {
             true -> when (sortDescending()) {
                 true -> { c1, c2 -> c2.chapter_number.compareTo(c1.chapter_number) }
                 false -> { c1, c2 -> c1.chapter_number.compareTo(c2.chapter_number) }
@@ -371,6 +372,16 @@ class ChaptersPresenter(
     }
 
     /**
+     * Sets the chapter order and requests an UI update.
+     * @param useSourceOrder whether or not to load chapters by source order
+     */
+    fun setSourceOrder(useSourceOrder: Boolean) {
+        manga.order = if (useSourceOrder) Manga.ORDER_SOURCE else Manga.ORDER_DEFAULT
+        db.updateFlags(manga).executeAsBlocking()
+        refreshChapters()
+    }
+
+    /**
      * Whether the display only downloaded filter is enabled.
      */
     fun onlyDownloaded(): Boolean {
@@ -396,6 +407,10 @@ class ChaptersPresenter(
      */
     fun onlyRead(): Boolean {
         return manga.readFilter == Manga.SHOW_READ
+    }
+
+    fun useSourceOrder(): Boolean {
+        return manga.order == Manga.ORDER_SOURCE
     }
 
     /**

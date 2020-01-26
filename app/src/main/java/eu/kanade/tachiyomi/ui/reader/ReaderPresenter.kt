@@ -100,7 +100,7 @@ class ReaderPresenter(
                     dbChapters
                 }
 
-        when (preferences.optimizeChapterOrder()) {
+        when (manga.order == Manga.ORDER_DEFAULT && preferences.optimizeChapterOrder()) {
             true -> ChapterLoadByNumber.get(chaptersForReader, selectedChapter)
             false -> ChapterLoadBySource.get(chaptersForReader)
         }.map(::ReaderChapter)

@@ -287,9 +287,6 @@
     <string name="fetch_chapters_error">अध्याय लाने के दौरान त्रुटि</string>
     <string name="show_title">शीर्षक दिखाओ</string>
     <string name="show_chapter_number">अध्याय संख्या दिखाएं</string>
-    <string name="sorting_mode">छंटनी मोड</string>
-    <string name="sort_by_source">स्रोत से</string>
-    <string name="sort_by_number">अध्याय संख्या से</string>
     <string name="manga_download">डाउनलोड</string>
     <string name="download_1">अगले अध्याय डाउनलोड करें</string>
     <string name="download_5">अगले ५ अध्याय डाउनलोड करें</string>

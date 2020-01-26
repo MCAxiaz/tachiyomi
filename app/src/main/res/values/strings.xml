@@ -391,9 +391,7 @@
     <string name="fetch_chapters_error">Could not fetch chapters</string>
     <string name="show_title">Show title</string>
     <string name="show_chapter_number">Show chapter number</string>
-    <string name="sorting_mode">Sorting mode</string>
-    <string name="sort_by_source">By source</string>
-    <string name="sort_by_number">By chapter number</string>
+    <string name="source_order">Use Source Order</string>
     <string name="manga_download">Download</string>
     <string name="custom_download">Download custom amount</string>
     <string name="custom_hint">amount</string>

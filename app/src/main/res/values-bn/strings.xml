@@ -286,9 +286,6 @@
     <string name="fetch_chapters_error">অধ্যায়গুলো নির্বাচন করতে যেয়ে ত্রুটি দেখা দিয়েছে</string>
     <string name="show_title">শিরোনাম দেখান</string>
     <string name="show_chapter_number">অধ্যায় নাম্বার দেখান</string>
-    <string name="sorting_mode">সাজানোর রূপ</string>
-    <string name="sort_by_source">উৎস অনুযায়ী</string>
-    <string name="sort_by_number">অধ্যায়ের নাম্বার অনুযায়ী</string>
     <string name="manga_download">ডাউনলোড</string>
     <string name="download_1">পরবর্তী অধ্যায় ডাউনলোড করুন</string>
     <string name="download_5">পরবর্তী ৫ অধ্যায় ডাউনলোড করুন</string>

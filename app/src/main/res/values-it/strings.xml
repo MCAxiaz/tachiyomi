@@ -233,9 +233,6 @@
     <string name="fetch_chapters_error">Errore durante il recupero dei capitoli</string>
     <string name="show_title">Mostra titolo</string>
     <string name="show_chapter_number">Mostra numero del capitolo</string>
-    <string name="sorting_mode">Modalità di ordinamento</string>
-    <string name="sort_by_source">Per fonte</string>
-    <string name="sort_by_number">Per numero di capitolo</string>
     <string name="manga_download">Scarica</string>
     <string name="download_1">Scarica il prossimo capitolo</string>
     <string name="download_5">Scarica i prossimi 5 capitoli</string>

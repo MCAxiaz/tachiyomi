@@ -133,12 +133,14 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
         val menuFilterUnread = menu.findItem(R.id.action_filter_unread)
         val menuFilterDownloaded = menu.findItem(R.id.action_filter_downloaded)
         val menuFilterBookmarked = menu.findItem(R.id.action_filter_bookmarked)
+        val menuSourceOrder = menu.findItem(R.id.action_source_order)
 
         // Set correct checkbox values.
         menuFilterRead.isChecked = presenter.onlyRead()
         menuFilterUnread.isChecked = presenter.onlyUnread()
         menuFilterDownloaded.isChecked = presenter.onlyDownloaded()
         menuFilterBookmarked.isChecked = presenter.onlyBookmarked()
+        menuSourceOrder.isChecked = presenter.useSourceOrder()
 
         if (presenter.onlyRead())
             //Disable unread filter option if read filter is enabled.
@@ -156,6 +158,10 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
             R.id.download_custom, R.id.download_unread, R.id.download_all
             -> downloadChapters(item.itemId)
 
+            R.id.action_source_order -> {
+                item.isChecked = !item.isChecked
+                presenter.setSourceOrder(item.isChecked)
+            }
             R.id.action_filter_unread -> {
                 item.isChecked = !item.isChecked
                 presenter.setUnreadFilter(item.isChecked)

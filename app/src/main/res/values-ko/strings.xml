@@ -266,9 +266,6 @@
     <string name="chapter_error">오류</string>
     <string name="chapter_paused">일시중지됨</string>
     <string name="show_chapter_number">챕터 번호 표시</string>
-    <string name="sorting_mode">정렬 모드</string>
-    <string name="sort_by_source">소스 기준</string>
-    <string name="sort_by_number">챕터 번호 기준</string>
     <string name="manga_download">다운로드</string>
     <string name="download_1">다음 챕터 다운로드</string>
     <string name="download_5">다음 5 챕터 다운로드</string>

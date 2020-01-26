@@ -90,7 +90,7 @@ class RecentlyReadPresenter(
 
         val allChapters = db.getChapters(manga).executeAsBlocking()
 
-        return when (preferences.optimizeChapterOrder()) {
+        return when (manga.order == Manga.ORDER_DEFAULT && preferences.optimizeChapterOrder()) {
             true -> ChapterLoadByNumber.getNextChapter(allChapters, chapter)
             false -> ChapterLoadBySource.getNextChapter(allChapters, chapter)
         }

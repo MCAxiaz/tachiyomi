@@ -159,7 +159,6 @@
     <string name="chapter_downloading_progress">Stahování (%1$d/%2$d)</string>
     <string name="chapter_error">Chyba</string>
     <string name="chapter_paused">Pozastaveno</string>
-    <string name="sort_by_source">Podle zdroje</string>
     <string name="manga_download">Stáhnout</string>
     <string name="download_1">Stáhnout další kapitolu</string>
     <string name="download_5">Stáhnout dalších 5 kapitol</string>
@@ -360,8 +359,6 @@
     <string name="copied_to_clipboard">%1$s zkopírováno do schránky</string>
     <string name="chapter_queued">Ve frontě</string>
     <string name="fetch_chapters_error">Chyba při načítání kapitol</string>
-    <string name="sorting_mode">Režim seřazení</string>
-    <string name="sort_by_number">Podle čísla kapitoly</string>
     <string name="custom_download">Stažení vlastního počtu</string>
     <string name="custom_hint">počet</string>
     <string name="manga_tracking_tab">Sledování</string>

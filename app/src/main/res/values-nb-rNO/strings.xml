@@ -317,9 +317,6 @@
     <string name="fetch_chapters_error">Feil under innhenting av kapittel</string>
     <string name="show_title">Vis tittel</string>
     <string name="show_chapter_number">Vis kapittelnummer</string>
-    <string name="sorting_mode">Sorteringsmodus</string>
-    <string name="sort_by_source">Etter kilde</string>
-    <string name="sort_by_number">Etter kapittelnummer</string>
     <string name="manga_download">Last ned</string>
     <string name="custom_download">Last ned egendefinert mengde</string>
     <string name="custom_hint">mengde</string>

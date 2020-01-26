@@ -326,9 +326,6 @@
     <string name="fetch_chapters_error">Σφάλμα κατά την ανάκτηση κεφαλαίων</string>
     <string name="show_title">Εμφάνιση τίτλου</string>
     <string name="show_chapter_number">Εμφάνιση αριθμού κεφαλαίου</string>
-    <string name="sorting_mode">Λειτουργία ταξινόμησης</string>
-    <string name="sort_by_source">Με βάση την πηγή</string>
-    <string name="sort_by_number">Ανά αριθμό κεφαλαίου</string>
     <string name="manga_download">Λήψη</string>
     <string name="custom_download">Λήψη προσαρμοσμένου ποσού</string>
     <string name="custom_hint">ποσό</string>

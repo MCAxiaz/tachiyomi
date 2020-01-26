@@ -286,9 +286,6 @@
     <string name="fetch_chapters_error">Ralat ketika mendapatkan bab</string>
     <string name="show_title">Perlihatkan tajuk</string>
     <string name="show_chapter_number">Perlihatkan nombor bab</string>
-    <string name="sorting_mode">Mod susunan</string>
-    <string name="sort_by_source">Mengikut sumber</string>
-    <string name="sort_by_number">Mengikut nombor bab</string>
     <string name="manga_download">Muat turun</string>
     <string name="download_1">Muat turun bab seterusnya</string>
     <string name="download_5">Muat turun 5 bab seterusnya</string>
