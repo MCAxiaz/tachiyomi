@@ -325,9 +325,6 @@ Nie znaleziono źródła %1$s</string>
     <string name="chapter_downloading">Pobieranie</string>
     <string name="chapter_downloading_progress">Pobieranie (%1$d/%2$d)</string>
     <string name="fetch_chapters_error">Błąd przy pobieraniu listy rozdziałów</string>
-    <string name="sorting_mode">Tryb sortowania</string>
-    <string name="sort_by_source">Według źródła</string>
-    <string name="sort_by_number">Według numeru rozdziału</string>
     <string name="manga_tracking_tab">Śledzenie</string>
     <string name="status">Status</string>
     <string name="snack_categories_deleted">Kategorie usunięte</string>

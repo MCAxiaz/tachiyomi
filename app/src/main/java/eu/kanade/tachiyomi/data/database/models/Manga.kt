@@ -45,6 +45,10 @@ interface Manga : SManga {
         get() = chapter_flags and BOOKMARKED_MASK
         set(filter) = setFlags(filter, BOOKMARKED_MASK)
 
+    var order: Int
+        get() = chapter_flags and ORDER_MASK
+        set(order) = setFlags(order, ORDER_MASK)
+
     companion object {
 
         const val SORT_DESC = 0x00000000
@@ -65,6 +69,10 @@ interface Manga : SManga {
         const val SHOW_BOOKMARKED = 0x00000020
         const val SHOW_NOT_BOOKMARKED = 0x00000040
         const val BOOKMARKED_MASK = 0x00000060
+
+        const val ORDER_DEFAULT = 0x00000000
+        const val ORDER_SOURCE = 0x00000100
+        const val ORDER_MASK = 0x00000100
 
         const val DISPLAY_NAME = 0x00000000
         const val DISPLAY_NUMBER = 0x00100000

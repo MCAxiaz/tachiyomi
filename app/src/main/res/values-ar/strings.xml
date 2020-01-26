@@ -286,9 +286,6 @@
     <string name="fetch_chapters_error">حدث خطأ أثناء جلب الفصول</string>
     <string name="show_title">عرض العنوان</string>
     <string name="show_chapter_number">عرض رقم الفصل</string>
-    <string name="sorting_mode">كيفية الفرز</string>
-    <string name="sort_by_source">حسب المصدر</string>
-    <string name="sort_by_number">حسب رقم الفصل</string>
     <string name="manga_download">تحميل</string>
     <string name="download_1">تحميل الفصل التالي</string>
     <string name="download_5">تحميل الفصول الخمسة التالية</string>

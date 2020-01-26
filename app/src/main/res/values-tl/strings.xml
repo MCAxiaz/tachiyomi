@@ -339,9 +339,6 @@
     <string name="fetch_chapters_error">Nagka-error habang kinukuha ang mga kabanata</string>
     <string name="show_title">Ipakita ang pamagat</string>
     <string name="show_chapter_number">Ipakita ang bilang ng kabanata</string>
-    <string name="sorting_mode">Paraan ng pag-aayos</string>
-    <string name="sort_by_source">Base sa source</string>
-    <string name="sort_by_number">Base sa bilang ng kabanata</string>
     <string name="manga_download">I-download</string>
     <string name="custom_download">I-download ang custom na rami</string>
     <string name="custom_hint">dami</string>

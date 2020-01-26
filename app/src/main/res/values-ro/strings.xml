@@ -324,9 +324,6 @@
     <string name="fetch_chapters_error">Eroare în aducerea capitolelor</string>
     <string name="show_title">Arată titlul</string>
     <string name="show_chapter_number">Arată numărul capitolului</string>
-    <string name="sorting_mode">Mod de sortare</string>
-    <string name="sort_by_source">După sursă</string>
-    <string name="sort_by_number">După numărul de capitole</string>
     <string name="manga_download">Descarcă</string>
     <string name="custom_download">Descarcă cantitate personalizată</string>
     <string name="custom_hint">cantitate</string>

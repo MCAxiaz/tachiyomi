@@ -191,9 +191,6 @@
     <string name="fetch_chapters_error">Error al obtener capítulos</string>
     <string name="show_title">Mostrar título</string>
     <string name="show_chapter_number">Mostrar número de capítulo</string>
-    <string name="sorting_mode">Ordenado de capítulos</string>
-    <string name="sort_by_source">Por fuente</string>
-    <string name="sort_by_number">Por número de capítulo</string>
     <string name="manga_download">Descargar</string>
     <string name="download_1">Descargar siguiente capítulo</string>
     <string name="download_5">Descargar siguientes 5 capítulos</string>

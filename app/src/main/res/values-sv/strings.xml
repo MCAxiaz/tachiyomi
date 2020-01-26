@@ -325,9 +325,6 @@
     <string name="fetch_chapters_error">Fel vid hämtning av kapitel</string>
     <string name="show_title">Visa titel</string>
     <string name="show_chapter_number">Visa kapitelnummer</string>
-    <string name="sorting_mode">Sorteringsläge</string>
-    <string name="sort_by_source">Efter källa</string>
-    <string name="sort_by_number">Efter kapitelnummer</string>
     <string name="manga_download">Ladda ner</string>
     <string name="custom_download">Ladda ner anpassat belopp</string>
     <string name="custom_hint">Belopp</string>

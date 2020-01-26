@@ -240,9 +240,6 @@
     <string name="fetch_chapters_error">Lỗi khi lấy dữ liệu các chương</string>
     <string name="show_title">Hiện tiêu đề</string>
     <string name="show_chapter_number">Hiện số chương</string>
-    <string name="sorting_mode">Sắp xếp</string>
-    <string name="sort_by_source">Theo nguồn truyện</string>
-    <string name="sort_by_number">Theo số chương</string>
     <string name="manga_download">Tải xuống</string>
     <string name="download_1">Tải chương kế</string>
     <string name="download_5">Tải 5 chương kế tiếp</string>

@@ -239,9 +239,6 @@
     <string name="fetch_chapters_error">Възникна грешка при показването на главите</string>
     <string name="show_title">Покажи заглавие</string>
     <string name="show_chapter_number">Показвай номера на главата</string>
-    <string name="sorting_mode">Сортиране</string>
-    <string name="sort_by_source">По източник</string>
-    <string name="sort_by_number">По ред на главите</string>
     <string name="manga_download">Изтегли</string>
     <string name="download_1">Изтегли следващата глава</string>
     <string name="download_5">Изтегли следващите 5 глави</string>

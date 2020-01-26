@@ -324,9 +324,6 @@
     <string name="fetch_chapters_error">Bölümler alınırken hata</string>
     <string name="show_title">Başlığı göster</string>
     <string name="show_chapter_number">Bölüm numarasını göster</string>
-    <string name="sorting_mode">Sıralama kipi</string>
-    <string name="sort_by_source">Kaynağa göre</string>
-    <string name="sort_by_number">Bölüm numarasına göre</string>
     <string name="manga_download">İndir</string>
     <string name="custom_download">Özel toplamda indir</string>
     <string name="custom_hint">Toplam</string>

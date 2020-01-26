@@ -276,9 +276,6 @@ Além disso, verifique se as fontes que requerem uma conta foram configuradas co
     <string name="fetch_chapters_error">Erro ao obter capítulos</string>
     <string name="show_title">Mostrar título</string>
     <string name="show_chapter_number">Mostrar número do capítulo</string>
-    <string name="sorting_mode">Modo de classificação</string>
-    <string name="sort_by_source">Pela fonte</string>
-    <string name="sort_by_number">Pelo número do capítulo</string>
     <string name="manga_download">Fazer download</string>
     <string name="download_1">Fazer download do próximo capítulo</string>
     <string name="download_5">Fazer download dos próximos 5 capítulos</string>

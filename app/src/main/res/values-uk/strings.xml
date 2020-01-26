@@ -325,9 +325,6 @@
     <string name="fetch_chapters_error">Помилка при видобуванні глав</string>
     <string name="show_title">Показувати назву</string>
     <string name="show_chapter_number">Показувати номер глави</string>
-    <string name="sorting_mode">Метод сортування</string>
-    <string name="sort_by_source">За каталогом</string>
-    <string name="sort_by_number">За номером глави</string>
     <string name="manga_download">Завантажити</string>
     <string name="custom_download">Завантажити певну кількість</string>
     <string name="custom_hint">кількість</string>

@@ -326,9 +326,6 @@
     <string name="fetch_chapters_error">Errore durante su recùperu de sos capìtulos</string>
     <string name="show_title">Ammustra su tìtulu</string>
     <string name="show_chapter_number">Ammustra su nùmeru de su capìtulu</string>
-    <string name="sorting_mode">Modalidade de ordinamentu</string>
-    <string name="sort_by_source">Pro mitza</string>
-    <string name="sort_by_number">Pro nùmeru de capìtulu</string>
     <string name="manga_download">Iscàrriga</string>
     <string name="custom_download">Iscàrriga una cantidade personalizada</string>
     <string name="custom_hint">cantidade</string>

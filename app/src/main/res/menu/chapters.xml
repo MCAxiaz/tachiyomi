@@ -66,4 +66,10 @@
                 android:title="@string/download_all" />
         </menu>
     </item>
+
+    <item
+        android:id="@+id/action_source_order"
+        android:title="@string/source_order"
+        android:checkable="true"
+        app:showAsAction="never" />
 </menu>

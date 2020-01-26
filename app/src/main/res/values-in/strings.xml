@@ -277,9 +277,6 @@
     <string name="fetch_chapters_error">Eror saat mengambil bab dari server</string>
     <string name="show_title">Perlihatkan judul</string>
     <string name="show_chapter_number">Perlihatkan nomor bab</string>
-    <string name="sorting_mode">Urutkan menurut</string>
-    <string name="sort_by_source">Sumber</string>
-    <string name="sort_by_number">Nomor bab</string>
     <string name="manga_download">Unduh</string>
     <string name="download_1">Unduh bab berikutnya</string>
     <string name="download_5">Unduh 5 bab berikutnya</string>

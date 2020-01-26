@@ -373,9 +373,6 @@
     <string name="fetch_chapters_error">Virhe hakiessa lukuja</string>
     <string name="show_title">Näytä nimike</string>
     <string name="show_chapter_number">Näytä luvun numero</string>
-    <string name="sorting_mode">Lajittelutila</string>
-    <string name="sort_by_source">Lähteen mukaan</string>
-    <string name="sort_by_number">Luvun numeron mukaan</string>
     <string name="manga_download">Lataa</string>
     <string name="confirm_delete_chapters">Oletko varma että haluat poistaa valitut luvut\?</string>
     <string name="reading">Luettavana</string>

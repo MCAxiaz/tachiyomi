@@ -325,9 +325,6 @@
     <string name="fetch_chapters_error">S\'ha produït un error en obtenir els capítols</string>
     <string name="show_title">Mostra el títol</string>
     <string name="show_chapter_number">Mostra el número del capítol</string>
-    <string name="sorting_mode">Mode d\'ordenació</string>
-    <string name="sort_by_source">Per font</string>
-    <string name="sort_by_number">Per número de capítol</string>
     <string name="manga_download">Descarrega</string>
     <string name="custom_download">Descarrega\'n una quantitat personalitzada</string>
     <string name="custom_hint">quantitat</string>

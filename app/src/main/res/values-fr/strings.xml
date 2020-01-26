@@ -226,8 +226,6 @@
     <string name="fetch_chapters_error">Une erreur est survenue en récupérant les chapitres</string>
     <string name="show_title">Afficher le titre</string>
     <string name="show_chapter_number">Afficher le numéro de chapitre</string>
-    <string name="sorting_mode">Mode de tri</string>
-    <string name="sort_by_number">Par numéro de chapitre</string>
     <string name="manga_download">Télécharger</string>
     <string name="download_1">Télécharger le chapitre suivant</string>
     <string name="download_5">Télécharger les 5 prochains chapitres</string>
@@ -329,7 +327,6 @@
     <string name="pref_clear_chapter_cache">Effacer le cache des chapitres</string>
     <string name="pref_remove_after_marked_as_read">Supprimer quand marqué comme lu</string>
     <string name="rounded_icon">Icône ronde</string>
-    <string name="sort_by_source">Par source</string>
     <string name="system_default">Par défaut système</string>
     <string name="updating_category">Mise à jour de la catégorie</string>
     <string name="no_more_results">Pas d\'autres résultats</string>

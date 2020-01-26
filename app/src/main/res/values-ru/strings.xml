@@ -254,9 +254,6 @@
     <string name="show_password">Показывать пароль</string>
     <string name="show_title">Показывать название</string>
     <string name="snack_add_to_library">Добавить мангу в библиотеку?</string>
-    <string name="sort_by_number">По номеру главы</string>
-    <string name="sort_by_source">По каталогу</string>
-    <string name="sorting_mode">Метод сортировки</string>
     <string name="source_requires_login">Этот каталог требует авторизации</string>
     <string name="square_icon">Квадратная иконка</string>
     <string name="star_icon">Звездочная иконка</string>

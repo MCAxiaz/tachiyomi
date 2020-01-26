@@ -325,9 +325,6 @@
     <string name="fetch_chapters_error">เกิดข้อผิดพลาดขณะตรวจสอบจำนวนบท</string>
     <string name="show_title">แสดงชื่อเรื่อง</string>
     <string name="show_chapter_number">แสดงหมายเลขบท</string>
-    <string name="sorting_mode">โหมดการเรียงลำดับ</string>
-    <string name="sort_by_source">ตามแหล่งที่มา</string>
-    <string name="sort_by_number">ตามหมายเลขบท</string>
     <string name="manga_download">ดาวน์โหลด</string>
     <string name="custom_download">จำนวนดาวน์โหลดที่กำหนดเอง</string>
     <string name="custom_hint">จำนวน</string>
