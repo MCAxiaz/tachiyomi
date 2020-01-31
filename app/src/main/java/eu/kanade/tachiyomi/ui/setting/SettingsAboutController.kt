@@ -4,22 +4,26 @@ import android.app.Dialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import androidx.preference.PreferenceScreen
 import android.view.View
+import androidx.preference.PreferenceScreen
 import com.afollestad.materialdialogs.MaterialDialog
 import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.R
+import eu.kanade.tachiyomi.data.preference.PreferencesHelper
+import eu.kanade.tachiyomi.data.preference.getOrDefault
 import eu.kanade.tachiyomi.data.updater.UpdateChecker
 import eu.kanade.tachiyomi.data.updater.UpdateResult
 import eu.kanade.tachiyomi.data.updater.UpdaterJob
 import eu.kanade.tachiyomi.data.updater.UpdaterService
 import eu.kanade.tachiyomi.ui.base.controller.DialogController
 import eu.kanade.tachiyomi.ui.main.ChangelogDialogController
+import eu.kanade.tachiyomi.util.toTimestampString
 import eu.kanade.tachiyomi.util.toast
 import rx.Subscription
 import rx.android.schedulers.AndroidSchedulers
 import rx.schedulers.Schedulers
 import timber.log.Timber
+import uy.kohesive.injekt.injectLazy
 import java.text.DateFormat
 import java.text.ParseException
 import java.text.SimpleDateFormat
@@ -33,6 +37,10 @@ class SettingsAboutController : SettingsController() {
      * Checks for new releases
      */
     private val updateChecker by lazy { UpdateChecker.getUpdateChecker() }
+
+    private val userPreferences: PreferencesHelper by injectLazy()
+
+    private val dateFormat: DateFormat = userPreferences.dateFormat().getOrDefault()
 
     /**
      * The subscribtion service of the obtained release object
@@ -179,13 +187,13 @@ class SettingsAboutController : SettingsController() {
         try {
             val inputDf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'", Locale.US)
             inputDf.timeZone = TimeZone.getTimeZone("UTC")
-            val date = inputDf.parse(BuildConfig.BUILD_TIME)
+            val buildTime = inputDf.parse(BuildConfig.BUILD_TIME)
 
             val outputDf = DateFormat.getDateTimeInstance(
                     DateFormat.MEDIUM, DateFormat.SHORT, Locale.getDefault())
             outputDf.timeZone = TimeZone.getDefault()
 
-            return outputDf.format(date)
+            return buildTime.toTimestampString(dateFormat)
         } catch (e: ParseException) {
             return BuildConfig.BUILD_TIME
         }
