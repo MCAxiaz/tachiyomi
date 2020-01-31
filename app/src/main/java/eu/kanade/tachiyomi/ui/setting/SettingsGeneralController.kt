@@ -14,12 +14,12 @@ class SettingsGeneralController : SettingsController() {
             key = Keys.lang
             titleRes = R.string.pref_language
             entryValues = arrayOf("", "ar", "bg", "bn", "ca", "cs", "de", "el", "en-US", "en-GB",
-            "es", "fr", "hi", "hu", "in", "it", "ja", "ko", "lv", "ms", "nb-rNO", "nl", "pl", "pt",
-            "pt-BR", "ro", "ru", "sc", "sr", "sv", "th", "tl", "tr", "uk", "vi", "zh-rCN")
+                    "es", "fr", "hi", "hu", "in", "it", "ja", "ko", "lv", "ms", "nb-rNO", "nl", "pl", "pt",
+                    "pt-BR", "ro", "ru", "sc", "sr", "sv", "th", "tl", "tr", "uk", "vi", "zh-rCN")
             entries = entryValues.map { value ->
                 val locale = LocaleHelper.getLocaleFromString(value.toString())
-                locale?.getDisplayName(locale)?.capitalize() ?:
-                        context.getString(R.string.system_default)
+                locale?.getDisplayName(locale)?.capitalize()
+                        ?: context.getString(R.string.system_default)
             }.toTypedArray()
             defaultValue = ""
             summary = "%s"
@@ -32,6 +32,20 @@ class SettingsGeneralController : SettingsController() {
                 activity.recreate()
                 true
             }
+        }
+        listPreference {
+            key = Keys.dateFormat
+            titleRes = R.string.pref_date_format
+            entryValues = arrayOf("", "MM/dd/yy", "dd/MM/yy", "yyyy-MM-dd")
+            entries = entryValues.map { value ->
+                if (value == "") {
+                    context.getString(R.string.system_default)
+                } else {
+                    value
+                }
+            }.toTypedArray()
+            defaultValue = ""
+            summary = "%s"
         }
         intListPreference {
             key = Keys.theme
