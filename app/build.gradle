@@ -112,7 +112,7 @@ dependencies {
     // Android support library
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'androidx.cardview:cardview:1.0.0'
-    implementation 'com.google.android.material:material:1.0.0'
+    implementation 'com.google.android.material:material:1.1.0'
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
     implementation 'androidx.preference:preference:1.1.0'
     implementation 'androidx.annotation:annotation:1.1.0'
@@ -163,7 +163,7 @@ dependencies {
     implementation 'com.github.gabrielemariotti.changeloglib:changelog:2.1.0'
 
     // Database
-    implementation 'androidx.sqlite:sqlite:2.0.1'
+    implementation 'androidx.sqlite:sqlite:2.1.0'
     implementation 'com.github.inorichi.storio:storio-common:8be19de@aar'
     implementation 'com.github.inorichi.storio:storio-sqlite:8be19de@aar'
     implementation 'io.requery:sqlite-android:3.25.2'

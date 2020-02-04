@@ -10,7 +10,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.data.preference.getOrDefault
-import eu.kanade.tachiyomi.util.plusAssign
+import eu.kanade.tachiyomi.util.lang.plusAssign
 import eu.kanade.tachiyomi.widget.IgnoreFirstSpinnerListener
 import eu.kanade.tachiyomi.widget.SimpleSeekBarListener
 import kotlinx.android.synthetic.main.reader_color_filter.*
@@ -30,7 +30,7 @@ class ReaderColorFilterSheet(activity: ReaderActivity) : BottomSheetDialog(activ
 
     private val preferences by injectLazy<PreferencesHelper>()
 
-    private var behavior: BottomSheetBehavior<*>? = null
+    private var sheetBehavior: BottomSheetBehavior<*>? = null
 
     /**
      * Subscriptions used for this dialog
@@ -51,7 +51,7 @@ class ReaderColorFilterSheet(activity: ReaderActivity) : BottomSheetDialog(activ
         val view = activity.layoutInflater.inflate(R.layout.reader_color_filter_sheet, null)
         setContentView(view)
 
-        behavior = BottomSheetBehavior.from(view.parent as ViewGroup)
+        sheetBehavior = BottomSheetBehavior.from(view.parent as ViewGroup)
 
         // Initialize subscriptions.
         subscriptions += preferences.colorFilter().asObservable()
@@ -138,8 +138,8 @@ class ReaderColorFilterSheet(activity: ReaderActivity) : BottomSheetDialog(activ
 
     override fun onStart() {
         super.onStart()
-        behavior?.skipCollapsed = true
-        behavior?.state = BottomSheetBehavior.STATE_EXPANDED
+        sheetBehavior?.skipCollapsed = true
+        sheetBehavior?.state = BottomSheetBehavior.STATE_EXPANDED
     }
 
     override fun onDetachedFromWindow() {

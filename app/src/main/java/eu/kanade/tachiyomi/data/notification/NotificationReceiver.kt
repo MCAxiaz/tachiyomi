@@ -13,10 +13,10 @@ import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.download.DownloadService
 import eu.kanade.tachiyomi.data.library.LibraryUpdateService
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
-import eu.kanade.tachiyomi.util.DiskUtil
-import eu.kanade.tachiyomi.util.getUriCompat
-import eu.kanade.tachiyomi.util.notificationManager
-import eu.kanade.tachiyomi.util.toast
+import eu.kanade.tachiyomi.util.storage.DiskUtil
+import eu.kanade.tachiyomi.util.storage.getUriCompat
+import eu.kanade.tachiyomi.util.system.notificationManager
+import eu.kanade.tachiyomi.util.system.toast
 import uy.kohesive.injekt.injectLazy
 import java.io.File
 import eu.kanade.tachiyomi.BuildConfig.APPLICATION_ID as ID
