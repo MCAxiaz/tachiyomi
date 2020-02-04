@@ -13,7 +13,13 @@ import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.source.online.fetchAllImageUrlsFromPageList
-import eu.kanade.tachiyomi.util.*
+import eu.kanade.tachiyomi.util.lang.RetryWithDelay
+import eu.kanade.tachiyomi.util.lang.launchNow
+import eu.kanade.tachiyomi.util.lang.launchUI
+import eu.kanade.tachiyomi.util.lang.plusAssign
+import eu.kanade.tachiyomi.util.storage.DiskUtil
+import eu.kanade.tachiyomi.util.storage.saveTo
+import eu.kanade.tachiyomi.util.system.ImageUtil
 import kotlinx.coroutines.async
 import okhttp3.Response
 import rx.Observable
@@ -246,7 +252,7 @@ class Downloader(
     private fun downloadChapter(download: Download): Observable<Download> = Observable.defer {
         val chapterDirname = provider.getChapterDirName(download.chapter)
         val mangaDir = provider.getMangaDir(download.manga, download.source)
-        val tmpDir = mangaDir.createDirectory("${chapterDirname}_tmp")
+        val tmpDir = mangaDir.createDirectory(chapterDirname + TMP_DIR_SUFFIX)
 
         val pageListObservable = if (download.pages == null) {
             // Pull page list from network and add them to download object
@@ -434,6 +440,10 @@ class Downloader(
      */
     private fun areAllDownloadsFinished(): Boolean {
         return queue.none { it.status <= Download.DOWNLOADING }
+    }
+
+    companion object {
+        const val TMP_DIR_SUFFIX = "_tmp"
     }
 
 }
