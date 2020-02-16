@@ -31,15 +31,14 @@ ext {
 android {
     compileSdkVersion 29
     buildToolsVersion '29.0.2'
-    publishNonDefault true
 
     defaultConfig {
         applicationId "eu.kanade.tachiyomi.axiaz"
         minSdkVersion 21
         targetSdkVersion 29
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        versionCode 56
-        versionName "1.12.3"
+        versionCode 57
+        versionName "1.12.4"
 
         buildConfigField "String", "COMMIT_COUNT", "\"${getCommitCount()}\""
         buildConfigField "String", "COMMIT_SHA", "\"${getGitSha()}\""
