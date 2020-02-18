@@ -82,7 +82,8 @@ class Downloader(
     /**
      * Whether the downloader is running.
      */
-    @Volatile private var isRunning: Boolean = false
+    @Volatile
+    private var isRunning: Boolean = false
 
     init {
         launchNow {
@@ -126,8 +127,6 @@ class Downloader(
             if (notifier.paused) {
                 notifier.paused = false
                 notifier.onDownloadPaused()
-            } else if (notifier.isSingleChapter && !notifier.errorThrown) {
-                notifier.isSingleChapter = false
             } else {
                 notifier.dismiss()
             }
@@ -177,7 +176,8 @@ class Downloader(
                 .concatMap { downloadChapter(it).subscribeOn(Schedulers.io()) }
                 .onBackpressureBuffer()
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ completeDownload(it)
+                .subscribe({
+                    completeDownload(it)
                 }, { error ->
                     DownloadService.stop(context)
                     Timber.e(error)
@@ -228,9 +228,6 @@ class Downloader(
 
         if (chaptersToQueue.isNotEmpty()) {
             queue.addAll(chaptersToQueue)
-
-            // Initialize queue size.
-            notifier.initialQueueSize = queue.size
 
             if (isRunning) {
                 // Send the list of downloads to the downloader.
@@ -381,10 +378,10 @@ class Downloader(
     private fun getImageExtension(response: Response, file: UniFile): String {
         // Read content type if available.
         val mime = response.body?.contentType()?.let { ct -> "${ct.type}/${ct.subtype}" }
-            // Else guess from the uri.
-            ?: context.contentResolver.getType(file.uri)
-            // Else read magic numbers.
-            ?: ImageUtil.findImageType { file.openInputStream() }?.mime
+                // Else guess from the uri.
+                ?: context.contentResolver.getType(file.uri)
+                // Else read magic numbers.
+                ?: ImageUtil.findImageType { file.openInputStream() }?.mime
 
         return MimeTypeMap.getSingleton().getExtensionFromMimeType(mime) ?: "jpg"
     }
@@ -428,9 +425,6 @@ class Downloader(
             queue.remove(download)
         }
         if (areAllDownloadsFinished()) {
-            if (notifier.isSingleChapter && !notifier.errorThrown) {
-                notifier.onDownloadCompleted(download, queue)
-            }
             DownloadService.stop(context)
         }
     }

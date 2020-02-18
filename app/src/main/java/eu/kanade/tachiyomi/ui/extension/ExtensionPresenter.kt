@@ -43,7 +43,7 @@ open class ExtensionPresenter(
                 .startWith(emptyList<Extension.Available>())
 
         return Observable.combineLatest(installedObservable, untrustedObservable, availableObservable)
-                { installed, untrusted, available -> Triple(installed, untrusted, available) }
+        { installed, untrusted, available -> Triple(installed, untrusted, available) }
                 .debounce(100, TimeUnit.MILLISECONDS)
                 .map(::toItems)
                 .observeOn(AndroidSchedulers.mainThread())
@@ -54,20 +54,34 @@ open class ExtensionPresenter(
 
     @Synchronized
     private fun toItems(tuple: ExtensionTuple): List<ExtensionItem> {
+        val activeLangs = preferences.enabledLanguages().getOrDefault()
+
         val (installed, untrusted, available) = tuple
 
         val items = mutableListOf<Pair<ExtensionGroupItem, List<ExtensionItem>>>()
 
-        val installedSorted = installed.sortedWith(compareBy({ !it.hasUpdate }, { !it.isObsolete }, { it.pkgName }))
+        val updatePartition = installed.partition { it.hasUpdate }
+        val updatesSorted = updatePartition.first.sortedBy { it.pkgName }
+        val installedSorted = updatePartition.second.sortedWith(compareBy({ !it.isObsolete }, { it.pkgName }))
+
         val untrustedSorted = untrusted.sortedBy { it.pkgName }
         val availableSorted = available
                 // Filter out already installed extensions
                 .filter { avail -> installed.none { it.pkgName == avail.pkgName }
-                        && untrusted.none { it.pkgName == avail.pkgName } }
+                        && untrusted.none { it.pkgName == avail.pkgName }
+                        && (avail.lang in activeLangs || avail.lang == "all")
+                }
                 .sortedBy { it.pkgName }
 
+        if (updatesSorted.isNotEmpty()) {
+            val header = ExtensionGroupItem(ExtensionGroupItem.Status.HAS_UPDATE, updatesSorted.size)
+            val updatePendingItems = updatesSorted.map { extension ->
+                ExtensionItem(extension, header)
+            }
+            items += Pair(header, updatePendingItems)
+        }
         if (installedSorted.isNotEmpty() || untrustedSorted.isNotEmpty()) {
-            val header = ExtensionGroupItem(true, installedSorted.size + untrustedSorted.size)
+            val header = ExtensionGroupItem(ExtensionGroupItem.Status.INSTALLED, installedSorted.size + untrustedSorted.size)
             val installedItems = mutableListOf<ExtensionItem>()
             items += Pair(header, installedItems)
 
@@ -81,11 +95,8 @@ open class ExtensionPresenter(
         if (availableSorted.isNotEmpty()) {
             availableSorted
                     .groupBy { it.lang }
-                    .filter {
-                        it.key in preferences.enabledLanguages().getOrDefault() || it.key == "all"
-                    }
                     .forEach {
-                        val header = ExtensionGroupItem(false, it.value.size, it.key)
+                        val header = ExtensionGroupItem(ExtensionGroupItem.Status.NOT_INSTALLED, it.value.size, it.key)
                         val langItems = mutableListOf<ExtensionItem>()
                         items += Pair(header, langItems)
 

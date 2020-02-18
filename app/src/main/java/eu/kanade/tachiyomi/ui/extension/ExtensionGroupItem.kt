@@ -10,11 +10,15 @@ import eu.kanade.tachiyomi.R
 /**
  * Item that contains the extension group header.
  *
- * @param installed For installed or uninstalled extensions
+ * @param status For which type of extensions
  * @param size Number of extensions in this group
  * @param lang Language tag of the extension group
  */
-data class ExtensionGroupItem(val installed: Boolean, var size: Int, val lang: String? = null) : AbstractHeaderItem<ExtensionGroupHolder>() {
+data class ExtensionGroupItem(val status: Status, var size: Int, val lang: String? = null) : AbstractHeaderItem<ExtensionGroupHolder>() {
+
+    enum class Status {
+        HAS_UPDATE, INSTALLED, NOT_INSTALLED
+    }
 
     /**
      * Returns the layout resource of this item.
@@ -42,13 +46,13 @@ data class ExtensionGroupItem(val installed: Boolean, var size: Int, val lang: S
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other is ExtensionGroupItem) {
-            return installed == other.installed && lang == other.lang
+            return status == other.status && lang == other.lang
         }
         return false
     }
 
     override fun hashCode(): Int {
-        var result = installed.hashCode()
+        var result = status.hashCode()
         result = 31 * result + (lang?.hashCode() ?: 0)
         return result
     }

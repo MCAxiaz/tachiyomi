@@ -14,11 +14,15 @@ class ExtensionGroupHolder(view: View, adapter: FlexibleAdapter<*>) :
     @SuppressLint("SetTextI18n")
     fun bind(item: ExtensionGroupItem) {
         val context = itemView.context
-        val name =
-                if (item.installed) context.getString(R.string.ext_installed)
-                else item.lang?.let{
+        val name = when (item.status) {
+            ExtensionGroupItem.Status.HAS_UPDATE -> context.getString(R.string.ext_updates_pending)
+            ExtensionGroupItem.Status.INSTALLED -> context.getString(R.string.ext_installed)
+            ExtensionGroupItem.Status.NOT_INSTALLED -> {
+                item.lang?.let{
                     LocaleHelper.getDisplayName(item.lang, context)
                 } ?: context.getString(R.string.ext_available)
+            }
+        }
 
         title.text = "$name (${item.size})"
     }

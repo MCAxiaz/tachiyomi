@@ -91,7 +91,7 @@ class MangaInfoController : NucleusController<MangaInfoPresenter>(),
         fab_favorite.clicks().subscribeUntilDestroy { onFabClick() }
 
         // Set onLongClickListener to manage categories when FAB is clicked.
-        fab_favorite.longClicks().subscribeUntilDestroy{ onFabLongClick() }
+        fab_favorite.longClicks().subscribeUntilDestroy { onFabLongClick() }
 
         // Set SwipeRefresh to refresh manga data.
         swipe_refresh.refreshes().subscribeUntilDestroy { fetchMangaFromSource() }
@@ -133,6 +133,10 @@ class MangaInfoController : NucleusController<MangaInfoPresenter>(),
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.manga_info, menu)
+
+        if (presenter.source !is HttpSource) {
+            menu.findItem(R.id.action_share).isVisible = false
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -484,7 +488,7 @@ class MangaInfoController : NucleusController<MangaInfoPresenter>(),
                         activity?.toast(R.string.icon_creation_fail)
                     }
 
-                    override fun onLoadCleared(placeholder: Drawable?) { }
+                    override fun onLoadCleared(placeholder: Drawable?) {}
                 })
     }
 
