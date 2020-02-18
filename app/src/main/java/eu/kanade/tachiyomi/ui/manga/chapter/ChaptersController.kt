@@ -141,11 +141,11 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
         menuFilterBookmarked.isChecked = presenter.onlyBookmarked()
         menuSourceOrder.isChecked = presenter.useSourceOrder()
 
+        // Disable unread filter option if read filter is enabled.
         if (presenter.onlyRead())
-            //Disable unread filter option if read filter is enabled.
             menuFilterUnread.isEnabled = false
+        // Disable read filter option if unread filter is enabled.
         if (presenter.onlyUnread())
-            //Disable read filter option if unread filter is enabled.
             menuFilterRead.isEnabled = false
 
         // Display mode submenu
@@ -345,18 +345,20 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
             // Destroy action mode if there are no items selected.
             destroyActionModeIfNeeded()
         } else {
-            mode.title = resources?.getString(R.string.label_selected, count)
+            mode.title = count.toString()
         }
         return false
     }
 
     override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.action_select_all -> selectAll()
-            R.id.action_mark_as_read -> markAsRead(getSelectedChapters())
-            R.id.action_mark_as_unread -> markAsUnread(getSelectedChapters())
             R.id.action_download -> downloadChapters(getSelectedChapters())
             R.id.action_delete -> showDeleteChaptersConfirmationDialog()
+            R.id.action_bookmark -> bookmarkChapters(getSelectedChapters(), true)
+            R.id.action_remove_bookmark -> bookmarkChapters(getSelectedChapters(), false)
+            R.id.action_mark_as_read -> markAsRead(getSelectedChapters())
+            R.id.action_mark_as_unread -> markAsUnread(getSelectedChapters())
+            R.id.action_select_all -> selectAll()
             else -> return false
         }
         return true
@@ -380,9 +382,9 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
 
         when (item.itemId) {
             R.id.action_download -> downloadChapters(chapters)
+            R.id.action_delete -> deleteChapters(chapters)
             R.id.action_bookmark -> bookmarkChapters(chapters, true)
             R.id.action_remove_bookmark -> bookmarkChapters(chapters, false)
-            R.id.action_delete -> deleteChapters(chapters)
             R.id.action_mark_as_read -> markAsRead(chapters)
             R.id.action_mark_as_unread -> markAsUnread(chapters)
             R.id.action_mark_previous_as_read -> markPreviousAsRead(chapter)

@@ -38,8 +38,8 @@ class RecentChaptersPresenter(
                 .subscribeLatestCache(RecentChaptersController::onNextRecentChapters)
 
         getChapterStatusObservable()
-                .subscribeLatestCache(RecentChaptersController::onChapterStatusChange) {
-                    _, error -> Timber.e(error)
+                .subscribeLatestCache(RecentChaptersController::onChapterStatusChange) { _, error ->
+                    Timber.e(error)
                 }
     }
 
@@ -63,7 +63,9 @@ class RecentChaptersPresenter(
                             .groupByTo(map, { getMapKey(it.chapter.date_fetch) })
                     byDay.flatMap {
                         val dateItem = DateItem(it.key)
-                        it.value.map { RecentChapterItem(it.chapter, it.manga, dateItem) }
+                        it.value
+                                .sortedWith(compareBy({ it.chapter.date_fetch }, { it.chapter.chapter_number })).asReversed()
+                                .map { RecentChapterItem(it.chapter, it.manga, dateItem) }
                     }
                 }
                 .doOnNext {

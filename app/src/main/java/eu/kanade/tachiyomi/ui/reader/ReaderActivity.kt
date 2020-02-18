@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.ui.reader
 
 import android.annotation.SuppressLint
+import android.annotation.TargetApi
 import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
@@ -8,6 +9,7 @@ import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.view.*
 import android.view.animation.Animation
@@ -17,6 +19,8 @@ import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
+import eu.kanade.tachiyomi.data.notification.NotificationReceiver
+import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.data.preference.getOrDefault
 import eu.kanade.tachiyomi.ui.base.activity.BaseRxActivity
@@ -103,10 +107,13 @@ class ReaderActivity : BaseRxActivity<ReaderPresenter>() {
         const val WEBTOON = 4
 
         fun newIntent(context: Context, manga: Manga, chapter: Chapter): Intent {
-            val intent = Intent(context, ReaderActivity::class.java)
-            intent.putExtra("manga", manga.id)
-            intent.putExtra("chapter", chapter.id)
-            return intent
+            return Intent(context, ReaderActivity::class.java).apply {
+                putExtra("manga", manga.id)
+                putExtra("chapter", chapter.id)
+                // chapters just added from library updates don't have an id yet
+                putExtra("chapterUrl", chapter.url)
+                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            }
         }
     }
 
@@ -124,13 +131,14 @@ class ReaderActivity : BaseRxActivity<ReaderPresenter>() {
         if (presenter.needsInit()) {
             val manga = intent.extras!!.getLong("manga", -1)
             val chapter = intent.extras!!.getLong("chapter", -1)
-
-            if (manga == -1L || chapter == -1L) {
+            val chapterUrl = intent.extras!!.getString("chapterUrl", "")
+            if (manga == -1L || chapterUrl == "" && chapter == -1L) {
                 finish()
                 return
             }
-
-            presenter.init(manga, chapter)
+            NotificationReceiver.dismissNotification(this, manga.hashCode(), Notifications.ID_NEW_CHAPTERS)
+            if (chapter > -1) presenter.init(manga, chapter)
+            else presenter.init(manga, chapterUrl)
         }
 
         if (savedState != null) {
@@ -547,35 +555,40 @@ class ReaderActivity : BaseRxActivity<ReaderPresenter>() {
             val sharedRotation = preferences.rotation().asObservable().share()
             val initialRotation = sharedRotation.take(1)
             val rotationUpdates = sharedRotation.skip(1)
-                .delay(250, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
+                    .delay(250, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
 
             subscriptions += Observable.merge(initialRotation, rotationUpdates)
-                .subscribe { setOrientation(it) }
+                    .subscribe { setOrientation(it) }
 
             subscriptions += preferences.readerTheme().asObservable()
-                .skip(1) // We only care about updates
-                .subscribe { recreate() }
+                    .skip(1) // We only care about updates
+                    .subscribe { recreate() }
 
             subscriptions += preferences.showPageNumber().asObservable()
-                .subscribe { setPageNumberVisibility(it) }
+                    .subscribe { setPageNumberVisibility(it) }
 
             subscriptions += preferences.trueColor().asObservable()
-                .subscribe { setTrueColor(it) }
+                    .subscribe { setTrueColor(it) }
 
             subscriptions += preferences.fullscreen().asObservable()
-                .subscribe { setFullscreen(it) }
+                    .subscribe { setFullscreen(it) }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                subscriptions += preferences.cutoutShort().asObservable()
+                        .subscribe { setCutoutShort(it) }
+            }
 
             subscriptions += preferences.keepScreenOn().asObservable()
-                .subscribe { setKeepScreenOn(it) }
+                    .subscribe { setKeepScreenOn(it) }
 
             subscriptions += preferences.customBrightness().asObservable()
-                .subscribe { setCustomBrightness(it) }
+                    .subscribe { setCustomBrightness(it) }
 
             subscriptions += preferences.colorFilter().asObservable()
-                .subscribe { setColorFilter(it) }
+                    .subscribe { setColorFilter(it) }
 
             subscriptions += preferences.colorFilterMode().asObservable()
-                .subscribe { setColorFilter(preferences.colorFilter().getOrDefault()) }
+                    .subscribe { setColorFilter(preferences.colorFilter().getOrDefault()) }
         }
 
         /**
@@ -646,6 +659,14 @@ class ReaderActivity : BaseRxActivity<ReaderPresenter>() {
             }
         }
 
+        @TargetApi(Build.VERSION_CODES.P)
+        private fun setCutoutShort(enabled: Boolean) {
+            window.attributes.layoutInDisplayCutoutMode = when (enabled) {
+                true -> WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+                false -> WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER
+            }
+        }
+
         /**
          * Sets the keep screen on mode according to [enabled].
          */
@@ -663,8 +684,8 @@ class ReaderActivity : BaseRxActivity<ReaderPresenter>() {
         private fun setCustomBrightness(enabled: Boolean) {
             if (enabled) {
                 customBrightnessSubscription = preferences.customBrightnessValue().asObservable()
-                    .sample(100, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
-                    .subscribe { setCustomBrightnessValue(it) }
+                        .sample(100, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
+                        .subscribe { setCustomBrightnessValue(it) }
 
                 subscriptions.add(customBrightnessSubscription)
             } else {
@@ -679,8 +700,8 @@ class ReaderActivity : BaseRxActivity<ReaderPresenter>() {
         private fun setColorFilter(enabled: Boolean) {
             if (enabled) {
                 customFilterColorSubscription = preferences.colorFilterValue().asObservable()
-                    .sample(100, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
-                    .subscribe { setColorFilterValue(it) }
+                        .sample(100, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
+                        .subscribe { setColorFilterValue(it) }
 
                 subscriptions.add(customFilterColorSubscription)
             } else {
