@@ -15,6 +15,7 @@ import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
 import eu.kanade.tachiyomi.data.preference.PreferenceKeys as Keys
+import eu.kanade.tachiyomi.data.preference.PreferenceValues as Values
 
 fun <T> Preference<T>.getOrDefault(): T = get() ?: defaultValue()!!
 
@@ -51,9 +52,19 @@ class PreferencesHelper(val context: Context) {
 
     fun startScreen() = prefs.getInt(Keys.startScreen, 1)
 
+    fun useBiometricLock() = rxPrefs.getBoolean(Keys.useBiometricLock, false)
+
+    fun lockAppAfter() = rxPrefs.getInteger(Keys.lockAppAfter, 0)
+
+    fun lastAppUnlock() = rxPrefs.getLong(Keys.lastAppUnlock, 0)
+
+    fun secureScreen() = rxPrefs.getBoolean(Keys.secureScreen, false)
+
     fun clear() = prefs.edit().clear().apply()
 
-    fun theme() = prefs.getInt(Keys.theme, 1)
+    fun themeMode() = rxPrefs.getString(Keys.themeMode, Values.THEME_MODE_SYSTEM)
+
+    fun themeDark() = prefs.getString(Keys.themeDark, Values.THEME_DARK_DEFAULT)
 
     fun rotation() = rxPrefs.getInteger(Keys.rotation, 1)
 
@@ -94,6 +105,8 @@ class PreferencesHelper(val context: Context) {
     fun cropBorders() = rxPrefs.getBoolean(Keys.cropBorders, false)
 
     fun cropBordersWebtoon() = rxPrefs.getBoolean(Keys.cropBordersWebtoon, false)
+
+    fun padPagesVertWebtoon() = rxPrefs.getBoolean(Keys.padPagesVertWebtoon, false)
 
     fun readWithTapping() = rxPrefs.getBoolean(Keys.readWithTapping, true)
 

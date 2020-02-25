@@ -2,6 +2,7 @@ package eu.kanade.tachiyomi.ui.reader.viewer.webtoon
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.view.Gravity
@@ -31,6 +32,7 @@ import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderProgressBar
 import eu.kanade.tachiyomi.util.system.ImageUtil
 import eu.kanade.tachiyomi.util.system.dpToPx
+import eu.kanade.tachiyomi.util.system.pxToDp
 import eu.kanade.tachiyomi.util.view.gone
 import eu.kanade.tachiyomi.util.view.visible
 import rx.Observable
@@ -111,7 +113,7 @@ class WebtoonPageHolder(
     private var readImageHeaderSubscription: Subscription? = null
 
     init {
-        frame.layoutParams = FrameLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+        refreshLayoutParams()
     }
 
     /**
@@ -120,6 +122,15 @@ class WebtoonPageHolder(
     fun bind(page: ReaderPage) {
         this.page = page
         observeStatus()
+        refreshLayoutParams()
+    }
+
+    private fun refreshLayoutParams() {
+        frame.layoutParams = FrameLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
+            if (viewer.config.padPagesVert) {
+                bottomMargin = 15.dpToPx
+            }
+        }
     }
 
     /**

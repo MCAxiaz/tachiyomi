@@ -5,7 +5,9 @@ package eu.kanade.tachiyomi.data.preference
  */
 object PreferenceKeys {
 
-    const val theme = "pref_theme_key"
+    const val themeMode = "pref_theme_mode_key"
+
+    const val themeDark = "pref_theme_dark_key"
 
     const val rotation = "pref_rotation_type_key"
 
@@ -46,6 +48,8 @@ object PreferenceKeys {
     const val cropBorders = "crop_borders"
 
     const val cropBordersWebtoon = "crop_borders_webtoon"
+
+    const val padPagesVertWebtoon = "pad_pages_vert_webtoon"
 
     const val readWithTapping = "reader_tap"
 
@@ -104,6 +108,14 @@ object PreferenceKeys {
     const val automaticUpdates = "automatic_updates"
 
     const val startScreen = "start_screen"
+
+    const val useBiometricLock = "use_biometric_lock"
+
+    const val lockAppAfter = "lock_app_after"
+
+    const val lastAppUnlock = "last_app_unlock"
+
+    const val secureScreen = "secure_screen"
 
     const val downloadNew = "download_new"
 
