@@ -18,7 +18,7 @@ class ExtensionGroupHolder(view: View, adapter: FlexibleAdapter<*>) :
             ExtensionGroupItem.Status.HAS_UPDATE -> context.getString(R.string.ext_updates_pending)
             ExtensionGroupItem.Status.INSTALLED -> context.getString(R.string.ext_installed)
             ExtensionGroupItem.Status.NOT_INSTALLED -> {
-                item.lang?.let{
+                item.lang?.let {
                     LocaleHelper.getDisplayName(item.lang, context)
                 } ?: context.getString(R.string.ext_available)
             }

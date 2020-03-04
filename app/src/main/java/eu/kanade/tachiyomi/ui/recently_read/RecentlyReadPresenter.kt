@@ -9,13 +9,13 @@ import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.ui.base.presenter.BasePresenter
 import eu.kanade.tachiyomi.ui.reader.ChapterLoadByNumber
 import eu.kanade.tachiyomi.ui.reader.ChapterLoadBySource
+import java.util.Calendar
+import java.util.Date
 import rx.Observable
 import rx.android.schedulers.AndroidSchedulers
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
-import java.util.Calendar
-import java.util.Date
 
 /**
  * Presenter of RecentlyReadFragment.
@@ -23,7 +23,7 @@ import java.util.Date
  * Observable updates should be called from here.
  */
 class RecentlyReadPresenter(
-        private val preferences: PreferencesHelper = Injekt.get()
+    private val preferences: PreferencesHelper = Injekt.get()
 ) : BasePresenter<RecentlyReadController>() {
 
     /**
@@ -95,5 +95,4 @@ class RecentlyReadPresenter(
             false -> ChapterLoadBySource.getNextChapter(allChapters, chapter)
         }
     }
-
 }

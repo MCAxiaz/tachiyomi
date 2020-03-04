@@ -113,5 +113,4 @@ internal class ExtensionInstallReceiver(private val listener: Listener) :
         fun onExtensionUntrusted(extension: Extension.Untrusted)
         fun onPackageUninstalled(pkgName: String)
     }
-
 }

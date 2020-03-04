@@ -5,6 +5,8 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'com.github.zellius.shortcut-helper'
+apply plugin: "org.jmailen.kotlinter"
+
 
 shortcutHelper.filePath = './shortcuts.xml'
 
@@ -65,6 +67,11 @@ android {
             versionNameSuffix "-${getCommitCount()}"
             applicationIdSuffix ".debug"
         }
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
     }
 
     flavorDimensions "default"
@@ -119,7 +126,7 @@ dependencies {
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation 'androidx.biometric:biometric:1.0.1'
 
-    final lifecycle_version = '2.1.0'
+    final lifecycle_version = '2.2.0'
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-common-java8:$lifecycle_version"
 
@@ -160,8 +167,9 @@ dependencies {
     implementation 'org.jsoup:jsoup:1.12.1'
 
     // Job scheduling
-    implementation 'com.evernote:android-job:1.2.5'
-    implementation 'com.google.android.gms:play-services-gcm:17.0.0'
+    final work_version = '2.3.2'
+    implementation "androidx.work:work-runtime:$work_version"
+    implementation "androidx.work:work-runtime-ktx:$work_version"
 
     // Changelog
     implementation 'com.github.gabrielemariotti.changeloglib:changelog:2.1.0'
@@ -262,3 +270,6 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile).all {
 androidExtensions {
     experimental = true
 }
+
+preBuild.dependsOn(lintKotlin)
+lintKotlin.dependsOn(formatKotlin)
