@@ -7,4 +7,4 @@ android:
   licenses:
   - android-sdk-license-.+
 script:
-  - ./gradlew clean assembleDevRelease
+  - ./gradlew clean assembleStandardRelease
