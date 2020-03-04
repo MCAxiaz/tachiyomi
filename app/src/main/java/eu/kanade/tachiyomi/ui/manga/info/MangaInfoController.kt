@@ -10,7 +10,12 @@ import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
@@ -45,12 +50,25 @@ import eu.kanade.tachiyomi.ui.webview.WebViewActivity
 import eu.kanade.tachiyomi.util.lang.truncateCenter
 import eu.kanade.tachiyomi.util.system.toast
 import eu.kanade.tachiyomi.util.view.snack
-import jp.wasabeef.glide.transformations.CropSquareTransformation
-import kotlinx.android.synthetic.main.manga_info_controller.*
-import uy.kohesive.injekt.injectLazy
 import java.text.DateFormat
 import java.text.DecimalFormat
 import java.util.Date
+import jp.wasabeef.glide.transformations.CropSquareTransformation
+import kotlinx.android.synthetic.main.manga_info_controller.backdrop
+import kotlinx.android.synthetic.main.manga_info_controller.fab_favorite
+import kotlinx.android.synthetic.main.manga_info_controller.manga_artist
+import kotlinx.android.synthetic.main.manga_info_controller.manga_artist_label
+import kotlinx.android.synthetic.main.manga_info_controller.manga_author
+import kotlinx.android.synthetic.main.manga_info_controller.manga_chapters
+import kotlinx.android.synthetic.main.manga_info_controller.manga_cover
+import kotlinx.android.synthetic.main.manga_info_controller.manga_full_title
+import kotlinx.android.synthetic.main.manga_info_controller.manga_genres_tags
+import kotlinx.android.synthetic.main.manga_info_controller.manga_last_update
+import kotlinx.android.synthetic.main.manga_info_controller.manga_source
+import kotlinx.android.synthetic.main.manga_info_controller.manga_status
+import kotlinx.android.synthetic.main.manga_info_controller.manga_summary
+import kotlinx.android.synthetic.main.manga_info_controller.swipe_refresh
+import uy.kohesive.injekt.injectLazy
 
 /**
  * Fragment that shows manga information.
@@ -153,14 +171,13 @@ class MangaInfoController : NucleusController<MangaInfoPresenter>(),
      * If true update view with manga information,
      * if false fetch manga information
      *
-     * @param manga  manga object containing information about manga.
+     * @param manga manga object containing information about manga.
      * @param source the source of the manga.
      */
     fun onNextManga(manga: Manga, source: Source) {
         if (manga.initialized) {
             // Update view.
             setMangaInfo(manga, source)
-
         } else {
             // Initialize manga.
             fetchMangaFromSource()
@@ -176,7 +193,7 @@ class MangaInfoController : NucleusController<MangaInfoPresenter>(),
     private fun setMangaInfo(manga: Manga, source: Source?) {
         val view = view ?: return
 
-        //update full title TextView.
+        // update full title TextView.
         manga_full_title.text = if (manga.title.isBlank()) {
             view.context.getString(R.string.unknown)
         } else {
@@ -339,7 +356,6 @@ class MangaInfoController : NucleusController<MangaInfoPresenter>(),
         presenter.fetchMangaFromSource()
     }
 
-
     /**
      * Update swipe refresh to stop showing refresh in progress spinner.
      */
@@ -364,20 +380,33 @@ class MangaInfoController : NucleusController<MangaInfoPresenter>(),
         swipe_refresh?.isRefreshing = value
     }
 
-    /**
-     * Called when the fab is clicked.
-     */
     private fun onFabClick() {
         val manga = presenter.manga
-        toggleFavorite()
+
         if (manga.favorite) {
+            toggleFavorite()
+            activity?.toast(activity?.getString(R.string.manga_removed_library))
+        } else {
             val categories = presenter.getCategories()
             val defaultCategoryId = preferences.defaultCategory()
             val defaultCategory = categories.find { it.id == defaultCategoryId }
+
             when {
-                defaultCategory != null -> presenter.moveMangaToCategory(manga, defaultCategory)
-                defaultCategoryId == 0 || categories.isEmpty() -> // 'Default' or no category
+                // Default category set
+                defaultCategory != null -> {
+                    toggleFavorite()
+                    presenter.moveMangaToCategory(manga, defaultCategory)
+                    activity?.toast(activity?.getString(R.string.manga_added_library))
+                }
+
+                // Automatic 'Default' or no categories
+                defaultCategoryId == 0 || categories.isEmpty() -> {
+                    toggleFavorite()
                     presenter.moveMangaToCategory(manga, null)
+                    activity?.toast(activity?.getString(R.string.manga_added_library))
+                }
+
+                // Choose a category
                 else -> {
                     val ids = presenter.getMangaCategoryIds(manga)
                     val preselected = ids.mapNotNull { id ->
@@ -388,26 +417,15 @@ class MangaInfoController : NucleusController<MangaInfoPresenter>(),
                             .showDialog(router)
                 }
             }
-            activity?.toast(activity?.getString(R.string.manga_added_library))
-        } else {
-            activity?.toast(activity?.getString(R.string.manga_removed_library))
         }
     }
 
-    /**
-     * Called when the fab is long clicked.
-     */
     private fun onFabLongClick() {
         val manga = presenter.manga
-        if (!manga.favorite) {
-            toggleFavorite()
-            activity?.toast(activity?.getString(R.string.manga_added_library))
-        }
-        val categories = presenter.getCategories()
-        if (categories.isEmpty()) {
-            // no categories exist, display a message about adding categories
-            activity?.toast(activity?.getString(R.string.action_add_category))
-        } else {
+
+        if (manga.favorite && presenter.getCategories().isNotEmpty()) {
+            val categories = presenter.getCategories()
+
             val ids = presenter.getMangaCategoryIds(manga)
             val preselected = ids.mapNotNull { id ->
                 categories.indexOfFirst { it.id == id }.takeIf { it != -1 }
@@ -415,12 +433,20 @@ class MangaInfoController : NucleusController<MangaInfoPresenter>(),
 
             ChangeMangaCategoriesDialog(this, listOf(manga), categories, preselected)
                     .showDialog(router)
+        } else {
+            onFabClick()
         }
     }
 
     override fun updateCategoriesForMangas(mangas: List<Manga>, categories: List<Category>) {
         val manga = mangas.firstOrNull() ?: return
+
+        if (!manga.favorite) {
+            toggleFavorite()
+        }
+
         presenter.moveMangaToCategories(manga, categories)
+        activity?.toast(activity?.getString(R.string.manga_added_library))
     }
 
     /**
@@ -577,5 +603,4 @@ class MangaInfoController : NucleusController<MangaInfoPresenter>(),
                     successCallback.intentSender)
         }
     }
-
 }

@@ -11,6 +11,7 @@
     <string name="history">History</string>
 
     <!-- Activities and fragments labels (toolbar title) -->
+    <string name="label_more">More</string>
     <string name="label_settings">Settings</string>
     <string name="label_download_queue">Download queue</string>
     <string name="label_library">Library</string>
@@ -24,10 +25,11 @@
     <string name="label_extension_info">Extension info</string>
     <string name="label_help">Help</string>
 
-    <string name="unlock_library">Unlock Library</string>
+    <string name="unlock_app">Unlock Tachiyomi</string>
 
     <!-- Actions -->
     <string name="action_settings">Settings</string>
+    <string name="action_menu">Menu</string>
     <string name="action_filter">Filter</string>
     <string name="action_filter_downloaded">Downloaded</string>
     <string name="action_filter_bookmarked">Bookmarked</string>
@@ -131,6 +133,7 @@
     <string name="pref_language">Language</string>
     <string name="system_default">System default</string>
     <string name="pref_date_format">Date format</string>
+    <string name="pref_manage_notifications">Manage notifications</string>
 
     <string name="pref_category_security">Security</string>
     <string name="lock_with_biometrics">Lock with biometrics</string>
@@ -142,9 +145,10 @@
         <item quantity="other">After %1$s minutes</item>
     </plurals>
     <string name="secure_screen">Secure screen</string>
+    <string name="secure_screen_summary">Hide app contents when switching apps and block screenshots</string>
 
       <!-- Library section -->
-    <string name="pref_category_library_display">Display</string>
+    <string name="pref_category_display">Display</string>
     <string name="pref_library_columns">Library manga per row</string>
     <string name="portrait">Portrait</string>
     <string name="landscape">Landscape</string>
@@ -332,14 +336,14 @@
 
 
     <!-- Login dialog -->
-    <string name="login_title">Login for %1$s</string>
+    <string name="login_title">Log in to %1$s</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
     <string name="show_password">Show password</string>
     <string name="login">Login</string>
-    <string name="login_success">Successfully logged in</string>
-    <string name="logout_title">Logout from %1$s?</string>
-    <string name="logout">Logout</string>
+    <string name="login_success">Logged in</string>
+    <string name="logout_title">Log out from %1$s?</string>
+    <string name="logout">Log out</string>
     <string name="logout_success">You are now logged out</string>
     <string name="invalid_login">Could not log in</string>
     <string name="unknown_error">Unknown error</string>
@@ -365,6 +369,7 @@
     <string name="action_global_search_hint">Global search…</string>
     <string name="latest">Latest</string>
     <string name="browse">Browse</string>
+    <string name="hide_catalogue">Hide %1$s?</string>
 
     <!-- Manga activity -->
     <string name="manga_not_in_db">This manga has been removed from the database.</string>
@@ -411,6 +416,9 @@
     <string name="fetch_chapters_error">Could not fetch chapters</string>
     <string name="show_title">Title</string>
     <string name="show_chapter_number">Chapter number</string>
+    <string name="sorting_mode">Sorting mode</string>
+    <string name="sort_by_source">By source</string>
+    <string name="sort_by_number">By chapter number</string>
     <string name="source_order">Use Source Order</string>
     <string name="manga_download">Download</string>
     <string name="custom_download">Download custom amount</string>
@@ -421,19 +429,19 @@
     <string name="download_custom">Custom</string>
     <string name="download_all">All</string>
     <string name="download_unread">Unread</string>
-    <string name="confirm_delete_chapters">Are you sure you want to delete selected chapters?</string>
+    <string name="confirm_delete_chapters">Are you sure you want to delete the selected chapters?</string>
     <string name="invalid_download_dir">Invalid download location</string>
 
     <!-- Tracking Screen -->
     <string name="manga_tracking_tab">Tracking</string>
     <string name="reading">Reading</string>
-    <string name="currently_reading">Currently Reading</string>
+    <string name="currently_reading">Currently reading</string>
     <string name="completed">Completed</string>
     <string name="dropped">Dropped</string>
     <string name="on_hold">On hold</string>
     <string name="paused">Paused</string>
     <string name="plan_to_read">Plan to read</string>
-    <string name="want_to_read">Want to Read</string>
+    <string name="want_to_read">Want to read</string>
     <string name="repeating">Rereading</string>
     <string name="score">Score</string>
     <string name="title">Title</string>
@@ -503,14 +511,20 @@
     <string name="notification_update_progress">Update progress: %1$d/%2$d</string>
     <string name="notification_new_chapters">New chapters found</string>
     <plurals name="notification_new_chapters_text">
-        <item quantity="one">For %d title</item>
+        <item quantity="one">For 1 title</item>
         <item quantity="other">For %d titles</item>
     </plurals>
-    <plurals name="notification_chapters">
-        <item quantity="one">Chapter %1$s</item>
-        <item quantity="other">Chapters %1$s</item>
+    <plurals name="notification_chapters_generic">
+        <item quantity="one">1 new chapter</item>
+        <item quantity="other">%1$d new chapters</item>
     </plurals>
-    <string name="notification_and_n_more">and %1$d more</string>
+    <string name="notification_chapters_single">Chapter %1$s</string>
+    <string name="notification_chapters_single_and_more">Chapter %1$s and %2$d more</string>
+    <string name="notification_chapters_multiple">Chapters %1$s</string>
+    <plurals name="notification_chapters_multiple_and_more">
+        <item quantity="one">Chapter %1$s and 1 more</item>
+        <item quantity="other">Chapters %1$s and %2$d more</item>
+    </plurals>
     <string name="notification_cover_update_failed">Failed to update cover</string>
     <string name="notification_first_add_to_library">Please add the manga to your library before doing this</string>
     <string name="notification_not_connected_to_ac_title">Sync canceled</string>

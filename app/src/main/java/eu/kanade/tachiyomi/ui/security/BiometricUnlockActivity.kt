@@ -5,9 +5,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricPrompt
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
-import uy.kohesive.injekt.injectLazy
 import java.util.Date
 import java.util.concurrent.Executors
+import uy.kohesive.injekt.injectLazy
 
 /**
  * Blank activity with a BiometricPrompt.
@@ -35,11 +35,10 @@ class BiometricUnlockActivity : AppCompatActivity() {
         })
 
         val promptInfo = BiometricPrompt.PromptInfo.Builder()
-                .setTitle(getString(R.string.unlock_library))
+                .setTitle(getString(R.string.unlock_app))
                 .setDeviceCredentialAllowed(true)
                 .build()
 
         biometricPrompt.authenticate(promptInfo)
     }
-
 }

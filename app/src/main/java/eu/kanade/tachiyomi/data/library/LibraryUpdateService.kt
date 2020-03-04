@@ -39,16 +39,16 @@ import eu.kanade.tachiyomi.util.system.isServiceRunning
 import eu.kanade.tachiyomi.util.system.notification
 import eu.kanade.tachiyomi.util.system.notificationBuilder
 import eu.kanade.tachiyomi.util.system.notificationManager
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+import java.util.ArrayList
+import java.util.concurrent.atomic.AtomicInteger
 import rx.Observable
 import rx.Subscription
 import rx.schedulers.Schedulers
 import timber.log.Timber
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
-import java.text.DecimalFormat
-import java.text.DecimalFormatSymbols
-import java.util.ArrayList
-import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * This class will take care of updating the chapters of the manga from the library. It can be
@@ -59,11 +59,11 @@ import java.util.concurrent.atomic.AtomicInteger
  * destroyed.
  */
 class LibraryUpdateService(
-        val db: DatabaseHelper = Injekt.get(),
-        val sourceManager: SourceManager = Injekt.get(),
-        val preferences: PreferencesHelper = Injekt.get(),
-        val downloadManager: DownloadManager = Injekt.get(),
-        val trackManager: TrackManager = Injekt.get()
+    val db: DatabaseHelper = Injekt.get(),
+    val sourceManager: SourceManager = Injekt.get(),
+    val preferences: PreferencesHelper = Injekt.get(),
+    val downloadManager: DownloadManager = Injekt.get(),
+    val trackManager: TrackManager = Injekt.get()
 ) : Service() {
 
     /**
@@ -109,8 +109,8 @@ class LibraryUpdateService(
      */
     enum class Target {
         CHAPTERS, // Manga chapters
-        DETAILS,  // Manga metadata
-        TRACKING  // Tracking metadata
+        DETAILS, // Manga metadata
+        TRACKING // Tracking metadata
     }
 
     companion object {
@@ -169,7 +169,6 @@ class LibraryUpdateService(
         fun stop(context: Context) {
             context.stopService(Intent(context, LibraryUpdateService::class.java))
         }
-
     }
 
     /**
@@ -502,7 +501,7 @@ class LibraryUpdateService(
         return notification(Notifications.CHANNEL_NEW_CHAPTERS) {
             setContentTitle(manga.title)
 
-            val description = getChaptersDescriptionString(chapters)
+            val description = getNewChaptersDescription(chapters)
             setContentText(description)
             setStyle(NotificationCompat.BigTextStyle().bigText(description))
 
@@ -555,28 +554,47 @@ class LibraryUpdateService(
         }
     }
 
-    private fun getChaptersDescriptionString(chapters: Array<Chapter>): String {
+    private fun getNewChaptersDescription(chapters: Array<Chapter>): String {
         val formatter = DecimalFormat("#.###", DecimalFormatSymbols()
                 .apply { decimalSeparator = '.' })
 
-        val chapterNumbers = chapters
+        val displayableChapterNumbers = chapters
+                .filter { it.chapter_number >= 0 }
                 .sortedBy { it.chapter_number }
                 .map { formatter.format(it.chapter_number) }
                 .toSet()
 
-        val shouldTruncate = chapterNumbers.size > NOTIF_MAX_CHAPTERS
-        val chaptersDescription = if (shouldTruncate) {
-            chapterNumbers.take(NOTIF_MAX_CHAPTERS - 1).joinToString(", ")
-        } else {
-            chapterNumbers.joinToString(", ")
+        return when (displayableChapterNumbers.size) {
+            // No sensible chapter numbers to show (i.e. no chapters have parsed chapter number)
+            0 -> {
+                // "1 new chapter" or "5 new chapters"
+                resources.getQuantityString(R.plurals.notification_chapters_generic, chapters.size, chapters.size)
+            }
+            // Only 1 chapter has a parsed chapter number
+            1 -> {
+                val remaining = chapters.size - displayableChapterNumbers.size
+                if (remaining == 0) {
+                    // "Chapter 2.5"
+                    resources.getString(R.string.notification_chapters_single, displayableChapterNumbers.first())
+                } else {
+                    // "Chapter 2.5 and 10 more"
+                    resources.getString(R.string.notification_chapters_single_and_more, displayableChapterNumbers.first(), remaining)
+                }
+            }
+            // Everything else (i.e. multiple parsed chapter numbers)
+            else -> {
+                val shouldTruncate = displayableChapterNumbers.size > NOTIF_MAX_CHAPTERS
+                if (shouldTruncate) {
+                    // "Chapters 1, 2.5, 3, 4, 5 and 10 more"
+                    val remaining = displayableChapterNumbers.size - NOTIF_MAX_CHAPTERS
+                    val joinedChapterNumbers = displayableChapterNumbers.take(NOTIF_MAX_CHAPTERS).joinToString(", ")
+                    resources.getQuantityString(R.plurals.notification_chapters_multiple_and_more, remaining, joinedChapterNumbers, remaining)
+                } else {
+                    // "Chapters 1, 2.5, 3"
+                    resources.getString(R.string.notification_chapters_multiple, displayableChapterNumbers.joinToString(","))
+                }
+            }
         }
-
-        var description = resources.getQuantityString(R.plurals.notification_chapters, chapters.size, chaptersDescription)
-        if (shouldTruncate) {
-            description += " ${resources.getString(R.string.notification_and_n_more, (chapterNumbers.size - (NOTIF_MAX_CHAPTERS - 1)))}"
-        }
-
-        return description
     }
 
     /**
@@ -589,5 +607,4 @@ class LibraryUpdateService(
         }
         return PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
     }
-
 }
