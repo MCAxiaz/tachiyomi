@@ -7,4 +7,5 @@
 *iml
 *.iml
 */build
-/captures
+/captures/
+gen/
