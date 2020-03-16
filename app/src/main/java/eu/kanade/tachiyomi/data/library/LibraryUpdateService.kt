@@ -96,11 +96,11 @@ class LibraryUpdateService(
     private val progressNotificationBuilder by lazy {
         notificationBuilder(Notifications.CHANNEL_LIBRARY) {
             setContentTitle(getString(R.string.app_name))
-            setSmallIcon(R.drawable.ic_refresh_white_24dp)
+            setSmallIcon(R.drawable.ic_refresh_24dp)
             setLargeIcon(notificationBitmap)
             setOngoing(true)
             setOnlyAlertOnce(true)
-            addAction(R.drawable.ic_close_white_24dp, getString(android.R.string.cancel), cancelIntent)
+            addAction(R.drawable.ic_close_24dp, getString(android.R.string.cancel), cancelIntent)
         }
     }
 
@@ -448,8 +448,13 @@ class LibraryUpdateService(
      * @param total the total progress.
      */
     private fun showProgressNotification(manga: Manga, current: Int, total: Int) {
+        val title = if (preferences.hideNotificationContent())
+            getString(R.string.notification_check_updates)
+        else
+            manga.title
+
         notificationManager.notify(Notifications.ID_LIBRARY_PROGRESS, progressNotificationBuilder
-                .setContentTitle(manga.title)
+                .setContentTitle(title)
                 .setProgress(total, current, false)
                 .build())
     }
@@ -468,13 +473,16 @@ class LibraryUpdateService(
             // Parent group notification
             notify(Notifications.ID_NEW_CHAPTERS, notification(Notifications.CHANNEL_NEW_CHAPTERS) {
                 setContentTitle(getString(R.string.notification_new_chapters))
-                if (updates.size == 1) {
+                if (updates.size == 1 && !preferences.hideNotificationContent()) {
                     setContentText(updates.first().first.title.chop(NOTIF_TITLE_MAX_LEN))
                 } else {
-                    setContentText(resources.getQuantityString(R.plurals.notification_new_chapters_text, updates.size, updates.size))
-                    setStyle(NotificationCompat.BigTextStyle().bigText(updates.joinToString("\n") {
-                        it.first.title.chop(NOTIF_TITLE_MAX_LEN)
-                    }))
+                    setContentText(resources.getQuantityString(R.plurals.notification_new_chapters_summary, updates.size, updates.size))
+
+                    if (!preferences.hideNotificationContent()) {
+                        setStyle(NotificationCompat.BigTextStyle().bigText(updates.joinToString("\n") {
+                            it.first.title.chop(NOTIF_TITLE_MAX_LEN)
+                        }))
+                    }
                 }
 
                 setSmallIcon(R.drawable.ic_tachi)
@@ -490,9 +498,11 @@ class LibraryUpdateService(
             })
 
             // Per-manga notification
-            updates.forEach {
-                val (manga, chapters) = it
-                notify(manga.id.hashCode(), createNewChaptersNotification(manga, chapters))
+            if (!preferences.hideNotificationContent()) {
+                updates.forEach {
+                    val (manga, chapters) = it
+                    notify(manga.id.hashCode(), createNewChaptersNotification(manga, chapters))
+                }
             }
         }
     }
@@ -525,7 +535,7 @@ class LibraryUpdateService(
                     NotificationReceiver.markAsReadPendingBroadcast(this@LibraryUpdateService,
                             manga, chapters, Notifications.ID_NEW_CHAPTERS))
             // View chapters action
-            addAction(R.drawable.ic_book_white_24dp, getString(R.string.action_view_chapters),
+            addAction(R.drawable.ic_book_24dp, getString(R.string.action_view_chapters),
                     NotificationReceiver.openChapterPendingActivity(this@LibraryUpdateService,
                             manga, Notifications.ID_NEW_CHAPTERS))
         }
@@ -559,7 +569,7 @@ class LibraryUpdateService(
                 .apply { decimalSeparator = '.' })
 
         val displayableChapterNumbers = chapters
-                .filter { it.chapter_number >= 0 }
+                .filter { it.isRecognizedNumber }
                 .sortedBy { it.chapter_number }
                 .map { formatter.format(it.chapter_number) }
                 .toSet()

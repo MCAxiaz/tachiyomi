@@ -2,6 +2,7 @@ package eu.kanade.tachiyomi.ui.more
 
 import androidx.preference.PreferenceScreen
 import eu.kanade.tachiyomi.R
+import eu.kanade.tachiyomi.ui.base.controller.RootController
 import eu.kanade.tachiyomi.ui.base.controller.withFadeTransaction
 import eu.kanade.tachiyomi.ui.download.DownloadController
 import eu.kanade.tachiyomi.ui.extension.ExtensionController
@@ -17,7 +18,7 @@ import eu.kanade.tachiyomi.util.preference.titleRes
 import eu.kanade.tachiyomi.util.system.getResourceColor
 import eu.kanade.tachiyomi.util.system.openInBrowser
 
-class MoreController : SettingsController() {
+class MoreController : SettingsController(), RootController {
 
     override fun setupPreferenceScreen(screen: PreferenceScreen) = with(screen) {
         titleRes = R.string.label_more
@@ -26,7 +27,7 @@ class MoreController : SettingsController() {
 
         preference {
             titleRes = R.string.label_extensions
-            iconRes = R.drawable.ic_extension_black_24dp
+            iconRes = R.drawable.ic_extension_24dp
             iconTint = tintColor
             onClick {
                 router.pushController(ExtensionController().withFadeTransaction())
@@ -52,14 +53,14 @@ class MoreController : SettingsController() {
         preferenceCategory {
             preference {
                 titleRes = R.string.label_settings
-                iconRes = R.drawable.ic_settings_black_24dp
+                iconRes = R.drawable.ic_settings_24dp
                 iconTint = tintColor
                 onClick {
                     router.pushController(SettingsMainController().withFadeTransaction())
                 }
             }
             preference {
-                iconRes = R.drawable.ic_info_black_24dp
+                iconRes = R.drawable.ic_info_24dp
                 iconTint = tintColor
                 titleRes = R.string.pref_category_about
                 onClick {
@@ -68,7 +69,7 @@ class MoreController : SettingsController() {
             }
             preference {
                 titleRes = R.string.label_help
-                iconRes = R.drawable.ic_help_black_24dp
+                iconRes = R.drawable.ic_help_outline_24dp
                 iconTint = tintColor
                 onClick {
                     activity?.openInBrowser(URL_HELP)

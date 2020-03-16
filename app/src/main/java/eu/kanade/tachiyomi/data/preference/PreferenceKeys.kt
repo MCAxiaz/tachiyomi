@@ -7,6 +7,8 @@ object PreferenceKeys {
 
     const val themeMode = "pref_theme_mode_key"
 
+    const val themeLight = "pref_theme_light_key"
+
     const val themeDark = "pref_theme_dark_key"
 
     const val rotation = "pref_rotation_type_key"
@@ -117,6 +119,8 @@ object PreferenceKeys {
 
     const val secureScreen = "secure_screen"
 
+    const val hideNotificationContent = "hide_notification_content"
+
     const val downloadNew = "download_new"
 
     const val downloadNewCategories = "download_new_categories"
@@ -132,6 +136,8 @@ object PreferenceKeys {
     const val skipRead = "skip_read"
 
     const val downloadBadge = "display_download_badge"
+
+    const val alwaysShowChapterTransition = "always_show_chapter_transition"
 
     fun trackUsername(syncId: Int) = "pref_mangasync_username_$syncId"
 

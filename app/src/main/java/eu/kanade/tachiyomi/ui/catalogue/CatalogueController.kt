@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.afollestad.materialdialogs.MaterialDialog
 import com.bluelinelabs.conductor.ControllerChangeHandler
 import com.bluelinelabs.conductor.ControllerChangeType
 import com.bluelinelabs.conductor.RouterTransaction
@@ -22,6 +23,7 @@ import eu.kanade.tachiyomi.data.preference.getOrDefault
 import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.ui.base.controller.NucleusController
+import eu.kanade.tachiyomi.ui.base.controller.RootController
 import eu.kanade.tachiyomi.ui.base.controller.requestPermissionsSafe
 import eu.kanade.tachiyomi.ui.base.controller.withFadeTransaction
 import eu.kanade.tachiyomi.ui.catalogue.browse.BrowseCatalogueController
@@ -39,11 +41,11 @@ import uy.kohesive.injekt.api.get
  * [CatalogueAdapter.OnLatestClickListener] call function data on latest item click
  */
 class CatalogueController : NucleusController<CataloguePresenter>(),
+        RootController,
         FlexibleAdapter.OnItemClickListener,
         FlexibleAdapter.OnItemLongClickListener,
         CatalogueAdapter.OnBrowseClickListener,
-        CatalogueAdapter.OnLatestClickListener,
-        HideCatalogueDialog.Listener {
+        CatalogueAdapter.OnLatestClickListener {
 
     /**
      * Application preferences.
@@ -130,15 +132,22 @@ class CatalogueController : NucleusController<CataloguePresenter>(),
     }
 
     override fun onItemLongClick(position: Int) {
+        val activity = activity ?: return
         val item = adapter?.getItem(position) as? SourceItem ?: return
-        val source = item.source
 
-        val dialog = HideCatalogueDialog(source)
-        dialog.targetController = this@CatalogueController
-        dialog.showDialog(router)
+        MaterialDialog.Builder(activity)
+                .title(item.source.name)
+                .items(activity.getString(R.string.action_hide))
+                .itemsCallback { _, _, which, _ ->
+                    when (which) {
+                        0 -> {
+                            hideCatalogue(item.source)
+                        }
+                    }
+                }.show()
     }
 
-    override fun hideCatalogueDialogClosed(source: Source) {
+    private fun hideCatalogue(source: Source) {
         val current = preferences.hiddenCatalogues().getOrDefault()
         preferences.hiddenCatalogues().set(current + source.id.toString())
 

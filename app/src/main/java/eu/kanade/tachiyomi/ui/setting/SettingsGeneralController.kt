@@ -3,7 +3,6 @@ package eu.kanade.tachiyomi.ui.setting
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
-import androidx.biometric.BiometricManager
 import androidx.preference.PreferenceScreen
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.preference.PreferenceKeys as Keys
@@ -17,8 +16,6 @@ import eu.kanade.tachiyomi.util.preference.onChange
 import eu.kanade.tachiyomi.util.preference.onClick
 import eu.kanade.tachiyomi.util.preference.preference
 import eu.kanade.tachiyomi.util.preference.preferenceCategory
-import eu.kanade.tachiyomi.util.preference.summaryRes
-import eu.kanade.tachiyomi.util.preference.switchPreference
 import eu.kanade.tachiyomi.util.preference.titleRes
 import eu.kanade.tachiyomi.util.system.LocaleHelper
 
@@ -30,9 +27,11 @@ class SettingsGeneralController : SettingsController() {
         intListPreference {
             key = Keys.startScreen
             titleRes = R.string.pref_start_screen
-            entriesRes = arrayOf(R.string.label_library, R.string.label_recent_manga,
-                    R.string.label_recent_updates)
-            entryValues = arrayOf("1", "2", "3")
+            entriesRes = arrayOf(
+                    R.string.label_library,
+                    R.string.label_recent_updates,
+                    R.string.label_recent_manga)
+            entryValues = arrayOf("1", "3", "2")
             defaultValue = "1"
             summary = "%s"
         }
@@ -120,6 +119,28 @@ class SettingsGeneralController : SettingsController() {
                 }
             }
             listPreference {
+                key = Keys.themeLight
+                titleRes = R.string.pref_theme_light
+                entriesRes = arrayOf(
+                        R.string.theme_light_default,
+                        R.string.theme_light_blue)
+                entryValues = arrayOf(
+                        Values.THEME_LIGHT_DEFAULT,
+                        Values.THEME_LIGHT_BLUE)
+                defaultValue = Values.THEME_LIGHT_DEFAULT
+                summary = "%s"
+
+                preferences.themeMode().asObservable()
+                        .subscribeUntilDestroy { isVisible = it != Values.THEME_MODE_DARK }
+
+                onChange {
+                    if (preferences.themeMode().getOrDefault() == Values.THEME_MODE_LIGHT) {
+                        activity?.recreate()
+                    }
+                    true
+                }
+            }
+            listPreference {
                 key = Keys.themeDark
                 titleRes = R.string.pref_theme_dark
                 entriesRes = arrayOf(
@@ -142,43 +163,6 @@ class SettingsGeneralController : SettingsController() {
                     }
                     true
                 }
-            }
-        }
-
-        preferenceCategory {
-            titleRes = R.string.pref_category_security
-
-            if (BiometricManager.from(context).canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS) {
-                switchPreference {
-                    key = Keys.useBiometricLock
-                    titleRes = R.string.lock_with_biometrics
-                    defaultValue = false
-                }
-                intListPreference {
-                    key = Keys.lockAppAfter
-                    titleRes = R.string.lock_when_idle
-                    val values = arrayOf("0", "1", "2", "5", "10", "-1")
-                    entries = values.mapNotNull {
-                        when (it) {
-                            "-1" -> context.getString(R.string.lock_never)
-                            "0" -> context.getString(R.string.lock_always)
-                            else -> resources?.getQuantityString(R.plurals.lock_after_mins, it.toInt(), it)
-                        }
-                    }.toTypedArray()
-                    entryValues = values
-                    defaultValue = "0"
-                    summary = "%s"
-
-                    preferences.useBiometricLock().asObservable()
-                            .subscribeUntilDestroy { isVisible = it }
-                }
-            }
-
-            switchPreference {
-                key = Keys.secureScreen
-                titleRes = R.string.secure_screen
-                summaryRes = R.string.secure_screen_summary
-                defaultValue = false
             }
         }
     }

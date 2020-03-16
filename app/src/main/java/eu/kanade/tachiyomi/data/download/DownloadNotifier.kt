@@ -8,10 +8,13 @@ import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.data.notification.NotificationHandler
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.data.notification.Notifications
+import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.util.lang.chop
 import eu.kanade.tachiyomi.util.system.notificationBuilder
 import eu.kanade.tachiyomi.util.system.notificationManager
 import java.util.regex.Pattern
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 
 /**
  * DownloadNotifier is used to show notifications when downloading one or multiple chapters.
@@ -23,6 +26,8 @@ internal class DownloadNotifier(private val context: Context) {
     private val notificationBuilder = context.notificationBuilder(Notifications.CHANNEL_DOWNLOADER) {
         setLargeIcon(BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher))
     }
+
+    private val preferences by lazy { Injekt.get<PreferencesHelper>() }
 
     /**
      * Status of download. Used for correct notification icon.
@@ -82,17 +87,24 @@ internal class DownloadNotifier(private val context: Context) {
                 setContentIntent(NotificationHandler.openDownloadManagerPendingActivity(context))
                 isDownloading = true
                 // Pause action
-                addAction(R.drawable.ic_pause_white_24dp,
+                addAction(R.drawable.ic_pause_24dp,
                         context.getString(R.string.action_pause),
                         NotificationReceiver.pauseDownloadsPendingBroadcast(context))
             }
 
-            val title = download.manga.title.chop(15)
-            val quotedTitle = Pattern.quote(title)
-            val chapter = download.chapter.name.replaceFirst("$quotedTitle[\\s]*[-]*[\\s]*".toRegex(RegexOption.IGNORE_CASE), "")
-            setContentTitle("$title - $chapter".chop(30))
-            setContentText(context.getString(R.string.chapter_downloading_progress)
-                    .format(download.downloadedImages, download.pages!!.size))
+            val downloadingProgressText = context.getString(R.string.chapter_downloading_progress)
+                    .format(download.downloadedImages, download.pages!!.size)
+
+            if (preferences.hideNotificationContent()) {
+                setContentTitle(downloadingProgressText)
+            } else {
+                val title = download.manga.title.chop(15)
+                val quotedTitle = Pattern.quote(title)
+                val chapter = download.chapter.name.replaceFirst("$quotedTitle[\\s]*[-]*[\\s]*".toRegex(RegexOption.IGNORE_CASE), "")
+                setContentTitle("$title - $chapter".chop(30))
+                setContentText(downloadingProgressText)
+            }
+
             setProgress(download.pages!!.size, download.downloadedImages, false)
         }
 
@@ -107,18 +119,18 @@ internal class DownloadNotifier(private val context: Context) {
         with(notificationBuilder) {
             setContentTitle(context.getString(R.string.chapter_paused))
             setContentText(context.getString(R.string.download_notifier_download_paused))
-            setSmallIcon(R.drawable.ic_pause_white_24dp)
+            setSmallIcon(R.drawable.ic_pause_24dp)
             setAutoCancel(false)
             setProgress(0, 0, false)
             clearActions()
             // Open download manager when clicked
             setContentIntent(NotificationHandler.openDownloadManagerPendingActivity(context))
             // Resume action
-            addAction(R.drawable.ic_play_arrow_white_24dp,
+            addAction(R.drawable.ic_play_arrow_24dp,
                     context.getString(R.string.action_resume),
                     NotificationReceiver.resumeDownloadsPendingBroadcast(context))
             // Clear action
-            addAction(R.drawable.ic_close_white_24dp,
+            addAction(R.drawable.ic_close_24dp,
                     context.getString(R.string.action_cancel_all),
                     NotificationReceiver.clearDownloadsPendingBroadcast(context))
         }

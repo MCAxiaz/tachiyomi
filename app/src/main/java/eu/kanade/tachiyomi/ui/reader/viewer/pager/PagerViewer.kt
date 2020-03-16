@@ -12,6 +12,8 @@ import eu.kanade.tachiyomi.ui.reader.model.ChapterTransition
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.model.ViewerChapters
 import eu.kanade.tachiyomi.ui.reader.viewer.BaseViewer
+import eu.kanade.tachiyomi.util.view.gone
+import eu.kanade.tachiyomi.util.view.visible
 import timber.log.Timber
 
 /**
@@ -63,7 +65,7 @@ abstract class PagerViewer(val activity: ReaderActivity) : BaseViewer {
         }
 
     init {
-        pager.visibility = View.GONE // Don't layout the pager yet
+        pager.gone() // Don't layout the pager yet
         pager.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
         pager.offscreenPageLimit = 1
         pager.id = R.id.reader_pager
@@ -144,8 +146,10 @@ abstract class PagerViewer(val activity: ReaderActivity) : BaseViewer {
         Timber.d("onReaderPageSelected: ${page.number}/${pages.size}")
         activity.onPageSelected(page)
 
-        if (page === pages.last()) {
-            Timber.d("Request preload next chapter because we're at the last page")
+        // Preload next chapter once we're within the last 3 pages of the current chapter
+        val inPreloadRange = pages.size - page.number < 3
+        if (inPreloadRange) {
+            Timber.d("Request preload next chapter because we're at page ${page.number} of ${pages.size}")
             adapter.nextTransition?.to?.let {
                 activity.requestPreloadChapter(it)
             }
@@ -185,14 +189,15 @@ abstract class PagerViewer(val activity: ReaderActivity) : BaseViewer {
      */
     private fun setChaptersInternal(chapters: ViewerChapters) {
         Timber.d("setChaptersInternal")
-        adapter.setChapters(chapters)
+        var forceTransition = config.alwaysShowChapterTransition || adapter.items.getOrNull(pager.currentItem) is ChapterTransition
+        adapter.setChapters(chapters, forceTransition)
 
         // Layout the pager once a chapter is being set
         if (pager.visibility == View.GONE) {
             Timber.d("Pager first layout")
             val pages = chapters.currChapter.pages ?: return
             moveToPage(pages[chapters.currChapter.requestedPage])
-            pager.visibility = View.VISIBLE
+            pager.visible()
         }
     }
 
