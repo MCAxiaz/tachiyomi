@@ -12,6 +12,8 @@ import eu.kanade.tachiyomi.ui.reader.model.ChapterTransition
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.model.ViewerChapters
 import eu.kanade.tachiyomi.ui.reader.viewer.BaseViewer
+import eu.kanade.tachiyomi.util.view.gone
+import eu.kanade.tachiyomi.util.view.visible
 import kotlin.math.max
 import kotlin.math.min
 import rx.subscriptions.CompositeSubscription
@@ -63,7 +65,7 @@ class WebtoonViewer(val activity: ReaderActivity) : BaseViewer {
     val subscriptions = CompositeSubscription()
 
     init {
-        recycler.visibility = View.GONE // Don't let the recycler layout yet
+        recycler.gone() // Don't let the recycler layout yet
         recycler.layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
         recycler.itemAnimator = null
         recycler.layoutManager = layoutManager
@@ -145,9 +147,11 @@ class WebtoonViewer(val activity: ReaderActivity) : BaseViewer {
         Timber.d("onPageSelected: ${page.number}/${pages.size}")
         activity.onPageSelected(page)
 
-        if (page === pages.last()) {
-            Timber.d("Request preload next chapter because we're at the last page")
-            val transition = adapter.items.getOrNull(position + 1) as? ChapterTransition.Next
+        // Preload next chapter once we're within the last 3 pages of the current chapter
+        val inPreloadRange = pages.size - page.number < 3
+        if (inPreloadRange) {
+            Timber.d("Request preload next chapter because we're at page ${page.number} of ${pages.size}")
+            val transition = adapter.items.getOrNull(pages.size + 1) as? ChapterTransition.Next
             if (transition?.to != null) {
                 activity.requestPreloadChapter(transition.to)
             }
@@ -175,13 +179,14 @@ class WebtoonViewer(val activity: ReaderActivity) : BaseViewer {
      */
     override fun setChapters(chapters: ViewerChapters) {
         Timber.d("setChapters")
-        adapter.setChapters(chapters)
+        var forceTransition = config.alwaysShowChapterTransition || currentPage is ChapterTransition
+        adapter.setChapters(chapters, forceTransition)
 
         if (recycler.visibility == View.GONE) {
             Timber.d("Recycler first layout")
             val pages = chapters.currChapter.pages ?: return
             moveToPage(pages[chapters.currChapter.requestedPage])
-            recycler.visibility = View.VISIBLE
+            recycler.visible()
         }
     }
 

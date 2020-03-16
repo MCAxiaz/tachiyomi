@@ -21,6 +21,8 @@ import eu.kanade.tachiyomi.ui.reader.loader.DownloadPageLoader
 import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.model.ViewerChapters
+import eu.kanade.tachiyomi.util.lang.byteSize
+import eu.kanade.tachiyomi.util.lang.takeBytes
 import eu.kanade.tachiyomi.util.storage.DiskUtil
 import eu.kanade.tachiyomi.util.system.ImageUtil
 import java.io.File
@@ -447,9 +449,10 @@ class ReaderPresenter(
         val chapter = page.chapter.chapter
 
         // Build destination file.
+        val filenameSuffix = " - ${page.number}.${type.extension}"
         val filename = DiskUtil.buildValidFilename(
-                "${manga.title} - ${chapter.name}".take(225)
-        ) + " - ${page.number}.${type.extension}"
+                "${manga.title} - ${chapter.name}".takeBytes(MAX_FILE_NAME_BYTES - filenameSuffix.byteSize())
+        ) + filenameSuffix
 
         val destFile = File(directory, filename)
         stream().use { input ->
@@ -636,5 +639,10 @@ class ReaderPresenter(
                 .onErrorComplete()
                 .subscribeOn(Schedulers.io())
                 .subscribe()
+    }
+
+    companion object {
+        // Safe theoretical max filename size is 255 bytes and 1 char = 2-4 bytes (UTF-8)
+        private const val MAX_FILE_NAME_BYTES = 250
     }
 }

@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Environment
-import android.preference.PreferenceManager
+import androidx.preference.PreferenceManager
 import com.f2prateek.rx.preferences.Preference
 import com.f2prateek.rx.preferences.RxSharedPreferences
 import eu.kanade.tachiyomi.R
@@ -59,11 +59,15 @@ class PreferencesHelper(val context: Context) {
 
     fun secureScreen() = rxPrefs.getBoolean(Keys.secureScreen, false)
 
+    fun hideNotificationContent() = prefs.getBoolean(Keys.hideNotificationContent, false)
+
     fun clear() = prefs.edit().clear().apply()
 
     fun themeMode() = rxPrefs.getString(Keys.themeMode, Values.THEME_MODE_SYSTEM)
 
-    fun themeDark() = prefs.getString(Keys.themeDark, Values.THEME_DARK_DEFAULT)
+    fun themeLight() = prefs.getString(Keys.themeLight, Values.THEME_DARK_DEFAULT)
+
+    fun themeDark() = prefs.getString(Keys.themeDark, Values.THEME_LIGHT_DEFAULT)
 
     fun rotation() = rxPrefs.getInteger(Keys.rotation, 1)
 
@@ -186,7 +190,7 @@ class PreferencesHelper(val context: Context) {
 
     fun librarySortingAscending() = rxPrefs.getBoolean("library_sorting_ascending", true)
 
-    fun automaticUpdates() = prefs.getBoolean(Keys.automaticUpdates, false)
+    fun automaticUpdates() = prefs.getBoolean(Keys.automaticUpdates, true)
 
     fun hiddenCatalogues() = rxPrefs.getStringSet("hidden_catalogues", emptySet())
 
@@ -203,4 +207,6 @@ class PreferencesHelper(val context: Context) {
     fun migrateFlags() = rxPrefs.getInteger("migrate_flags", Int.MAX_VALUE)
 
     fun trustedSignatures() = rxPrefs.getStringSet("trusted_signatures", emptySet())
+
+    fun alwaysShowChapterTransition() = rxPrefs.getBoolean(Keys.alwaysShowChapterTransition, true)
 }

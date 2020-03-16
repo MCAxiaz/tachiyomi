@@ -16,6 +16,7 @@ import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.ui.base.activity.BaseActivity
 import eu.kanade.tachiyomi.ui.base.controller.DialogController
 import eu.kanade.tachiyomi.ui.base.controller.NoToolbarElevationController
+import eu.kanade.tachiyomi.ui.base.controller.RootController
 import eu.kanade.tachiyomi.ui.base.controller.SecondaryDrawerController
 import eu.kanade.tachiyomi.ui.base.controller.TabbedController
 import eu.kanade.tachiyomi.ui.base.controller.withFadeTransaction
@@ -25,8 +26,8 @@ import eu.kanade.tachiyomi.ui.download.DownloadController
 import eu.kanade.tachiyomi.ui.library.LibraryController
 import eu.kanade.tachiyomi.ui.manga.MangaController
 import eu.kanade.tachiyomi.ui.more.MoreController
-import eu.kanade.tachiyomi.ui.recent_updates.RecentChaptersController
-import eu.kanade.tachiyomi.ui.recently_read.RecentlyReadController
+import eu.kanade.tachiyomi.ui.recent.history.HistoryController
+import eu.kanade.tachiyomi.ui.recent.updates.UpdatesController
 import kotlinx.android.synthetic.main.main_activity.appbar
 import kotlinx.android.synthetic.main.main_activity.bottom_nav
 import kotlinx.android.synthetic.main.main_activity.drawer
@@ -47,7 +48,8 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    lateinit var tabAnimator: TabsAnimator
+    lateinit var tabAnimator: ViewHeightAnimator
+    private lateinit var bottomNavAnimator: ViewHeightAnimator
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,7 +64,8 @@ class MainActivity : BaseActivity() {
 
         setSupportActionBar(toolbar)
 
-        tabAnimator = TabsAnimator(tabs)
+        tabAnimator = ViewHeightAnimator(tabs)
+        bottomNavAnimator = ViewHeightAnimator(bottom_nav)
 
         // Set behavior of bottom nav
         bottom_nav.setOnNavigationItemSelectedListener { item ->
@@ -72,8 +75,8 @@ class MainActivity : BaseActivity() {
             if (currentRoot?.tag()?.toIntOrNull() != id) {
                 when (id) {
                     R.id.nav_library -> setRoot(LibraryController(), id)
-                    R.id.nav_updates -> setRoot(RecentChaptersController(), id)
-                    R.id.nav_history -> setRoot(RecentlyReadController(), id)
+                    R.id.nav_updates -> setRoot(UpdatesController(), id)
+                    R.id.nav_history -> setRoot(HistoryController(), id)
                     R.id.nav_catalogues -> setRoot(CatalogueController(), id)
                     R.id.nav_more -> setRoot(MoreController(), id)
                 }
@@ -219,6 +222,13 @@ class MainActivity : BaseActivity() {
         }
 
         supportActionBar?.setDisplayHomeAsUpEnabled(router.backstackSize != 1)
+
+        if ((from == null || from is RootController) && to !is RootController) {
+            bottomNavAnimator.collapse()
+        }
+        if (to is RootController && from !is RootController) {
+            bottomNavAnimator.expand()
+        }
 
         if (from is TabbedController) {
             from.cleanupTabs(tabs)
