@@ -44,12 +44,13 @@
 
         <!-- Themes -->
         <item name="windowActionModeOverlay">true</item>
+        <item name="elevationOverlayEnabled">false</item>
         <item name="actionBarPopupTheme">@style/ThemeOverlay.MaterialComponents</item>
         <item name="toolbarNavigationButtonStyle">@style/Theme.Toolbar.Navigation</item>
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
         <item name="dialogTheme">@style/Theme.AlertDialog.Light</item>
         <item name="alertDialogTheme">@style/Theme.AlertDialog.Dark</item>
-        <item name="snackbarButtonStyle">@style/Theme.Widget.Button.Borderless</item>
+        <item name="snackbarButtonStyle">@style/Theme.Widget.Button</item>
         <item name="textAppearanceButton">@style/TextAppearance.Widget.Button</item>
         <item name="android:itemTextAppearance">@style/TextAppearance.Widget.Menu</item>
 
@@ -119,13 +120,14 @@
 
         <!-- Themes -->
         <item name="windowActionModeOverlay">true</item>
+        <item name="elevationOverlayEnabled">false</item>
         <item name="actionBarTheme">@style/ThemeOverlay.MaterialComponents.Dark.ActionBar</item>
         <item name="actionBarPopupTheme">@style/ThemeOverlay.MaterialComponents</item>
         <item name="toolbarNavigationButtonStyle">@style/Theme.Toolbar.Navigation</item>
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
         <item name="dialogTheme">@style/Theme.AlertDialog.Dark</item>
         <item name="alertDialogTheme">@style/Theme.AlertDialog.Dark</item>
-        <item name="snackbarButtonStyle">@style/Theme.Widget.Button.Borderless</item>
+        <item name="snackbarButtonStyle">@style/Theme.Widget.Button</item>
         <item name="textAppearanceButton">@style/TextAppearance.Widget.Button</item>
         <item name="android:itemTextAppearance">@style/TextAppearance.Widget.Menu</item>
 
