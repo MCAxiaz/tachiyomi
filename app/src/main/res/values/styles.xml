@@ -202,6 +202,24 @@
 
     <style name="Theme.Widget.Snackbar" parent="Widget.MaterialComponents.Snackbar">
         <item name="android:background">@drawable/snackbar_bg</item>
+        <item name="android:textAppearance">@style/TextAppearance.Widget.Menu</item>
+        <item name="actionTextColorAlpha">1</item>
+    </style>
+
+
+    <style name="Theme.Widget.Chip" parent="Widget.MaterialComponents.Chip.Action">
+        <item name="chipStrokeWidth">1dp</item>
+        <item name="chipStrokeColor">?attr/colorAccent</item>
+        <item name="chipBackgroundColor">@android:color/transparent</item>
+        <item name="android:textColor">?attr/colorAccent</item>
+
+        <!-- Smaller text/height -->
+        <item name="chipCornerRadius">12dp</item>
+        <item name="chipMinHeight">24dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.Regular.Caption</item>
+
+        <!-- Collapse horizontal margin -->
+        <item name="chipMinTouchTargetSize">30dp</item>
     </style>
 
 
@@ -209,12 +227,18 @@
     <!--Widgets.TextInputLayout-->
     <!--=======================-->
 
+    <style name="ThemeOverlay.Widget.TextInputEditText.OutlinedBox" parent="ThemeOverlay.MaterialComponents.TextInputEditText.OutlinedBox">
+        <item name="colorControlActivated">?attr/colorSecondary</item>
+    </style>
+
     <style name="Theme.Widget.TextInputLayout.OutlinedBox" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="materialThemeOverlay">@style/ThemeOverlay.Widget.TextInputEditText.OutlinedBox</item>
         <item name="boxStrokeColor">@color/text_input_stroke</item>
         <item name="hintTextColor">?attr/colorSecondary</item>
     </style>
 
     <style name="Theme.Widget.TextInputLayout.OutlinedBox.Dense" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+        <item name="materialThemeOverlay">@style/ThemeOverlay.Widget.TextInputEditText.OutlinedBox</item>
         <item name="boxStrokeColor">@color/text_input_stroke</item>
         <item name="hintTextColor">?attr/colorSecondary</item>
     </style>

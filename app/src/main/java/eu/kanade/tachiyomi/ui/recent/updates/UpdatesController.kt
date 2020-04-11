@@ -2,6 +2,7 @@ package eu.kanade.tachiyomi.ui.recent.updates
 
 import android.view.LayoutInflater
 import android.view.Menu
+import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
@@ -18,6 +19,7 @@ import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.data.library.LibraryUpdateService
 import eu.kanade.tachiyomi.data.notification.Notifications
+import eu.kanade.tachiyomi.databinding.UpdatesControllerBinding
 import eu.kanade.tachiyomi.ui.base.controller.NoToolbarElevationController
 import eu.kanade.tachiyomi.ui.base.controller.NucleusController
 import eu.kanade.tachiyomi.ui.base.controller.RootController
@@ -27,10 +29,6 @@ import eu.kanade.tachiyomi.ui.manga.MangaController
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.util.system.notificationManager
 import eu.kanade.tachiyomi.util.system.toast
-import kotlinx.android.synthetic.main.updates_controller.action_toolbar
-import kotlinx.android.synthetic.main.updates_controller.empty_view
-import kotlinx.android.synthetic.main.updates_controller.recycler
-import kotlinx.android.synthetic.main.updates_controller.swipe_refresh
 import timber.log.Timber
 
 /**
@@ -59,6 +57,12 @@ class UpdatesController : NucleusController<UpdatesPresenter>(),
     var adapter: UpdatesAdapter? = null
         private set
 
+    private lateinit var binding: UpdatesControllerBinding
+
+    init {
+        setHasOptionsMenu(true)
+    }
+
     override fun getTitle(): String? {
         return resources?.getString(R.string.label_recent_updates)
     }
@@ -68,7 +72,8 @@ class UpdatesController : NucleusController<UpdatesPresenter>(),
     }
 
     override fun inflateView(inflater: LayoutInflater, container: ViewGroup): View {
-        return inflater.inflate(R.layout.updates_controller, container, false)
+        binding = UpdatesControllerBinding.inflate(inflater)
+        return binding.root
     }
 
     /**
@@ -78,36 +83,55 @@ class UpdatesController : NucleusController<UpdatesPresenter>(),
     override fun onViewCreated(view: View) {
         super.onViewCreated(view)
         view.context.notificationManager.cancel(Notifications.ID_NEW_CHAPTERS)
+
         // Init RecyclerView and adapter
         val layoutManager = LinearLayoutManager(view.context)
-        recycler.layoutManager = layoutManager
-        recycler.addItemDecoration(DividerItemDecoration(view.context, DividerItemDecoration.VERTICAL))
-        recycler.setHasFixedSize(true)
+        binding.recycler.layoutManager = layoutManager
+        binding.recycler.addItemDecoration(DividerItemDecoration(view.context, DividerItemDecoration.VERTICAL))
+        binding.recycler.setHasFixedSize(true)
         adapter = UpdatesAdapter(this@UpdatesController)
-        recycler.adapter = adapter
+        binding.recycler.adapter = adapter
 
-        recycler.scrollStateChanges().subscribeUntilDestroy {
+        binding.recycler.scrollStateChanges().subscribeUntilDestroy {
             // Disable swipe refresh when view is not at the top
             val firstPos = layoutManager.findFirstCompletelyVisibleItemPosition()
-            swipe_refresh.isEnabled = firstPos <= 0
+            binding.swipeRefresh.isEnabled = firstPos <= 0
         }
 
-        swipe_refresh.setDistanceToTriggerSync((2 * 64 * view.resources.displayMetrics.density).toInt())
-        swipe_refresh.refreshes().subscribeUntilDestroy {
-            if (!LibraryUpdateService.isRunning(view.context)) {
-                LibraryUpdateService.start(view.context)
-                view.context.toast(R.string.action_update_library)
-            }
+        binding.swipeRefresh.setDistanceToTriggerSync((2 * 64 * view.resources.displayMetrics.density).toInt())
+        binding.swipeRefresh.refreshes().subscribeUntilDestroy {
+            updateLibrary()
+
             // It can be a very long operation, so we disable swipe refresh and show a toast.
-            swipe_refresh.isRefreshing = false
+            binding.swipeRefresh.isRefreshing = false
         }
     }
 
     override fun onDestroyView(view: View) {
         destroyActionModeIfNeeded()
-        action_toolbar.destroy()
+        binding.actionToolbar.destroy()
         adapter = null
         super.onDestroyView(view)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.updates, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.action_update_library -> updateLibrary()
+        }
+
+        return super.onOptionsItemSelected(item)
+    }
+
+    private fun updateLibrary() {
+        activity?.let {
+            if (LibraryUpdateService.start(it)) {
+                it.toast(R.string.updating_library)
+            }
+        }
     }
 
     /**
@@ -144,7 +168,7 @@ class UpdatesController : NucleusController<UpdatesPresenter>(),
     override fun onItemLongClick(position: Int) {
         if (actionMode == null) {
             actionMode = (activity as AppCompatActivity).startSupportActionMode(this)
-            action_toolbar.show(
+            binding.actionToolbar.show(
                     actionMode!!,
                     R.menu.updates_chapter_selection
             ) { onActionItemClicked(actionMode!!, it!!) }
@@ -192,9 +216,9 @@ class UpdatesController : NucleusController<UpdatesPresenter>(),
 
     override fun onUpdateEmptyView(size: Int) {
         if (size > 0) {
-            empty_view?.hide()
+            binding.emptyView.hide()
         } else {
-            empty_view?.show(R.string.information_no_recent)
+            binding.emptyView.show(R.string.information_no_recent)
         }
     }
 
@@ -211,7 +235,7 @@ class UpdatesController : NucleusController<UpdatesPresenter>(),
      * @param download [Download] object containing download progress.
      */
     private fun getHolder(download: Download): UpdatesHolder? {
-        return recycler?.findViewHolderForItemId(download.chapter.id!!) as? UpdatesHolder
+        return binding.recycler.findViewHolderForItemId(download.chapter.id!!) as? UpdatesHolder
     }
 
     /**
@@ -298,10 +322,10 @@ class UpdatesController : NucleusController<UpdatesPresenter>(),
             mode.title = count.toString()
 
             val chapters = getSelectedChapters()
-            action_toolbar.findItem(R.id.action_download)?.isVisible = chapters.any { !it.isDownloaded }
-            action_toolbar.findItem(R.id.action_delete)?.isVisible = chapters.any { it.isDownloaded }
-            action_toolbar.findItem(R.id.action_mark_as_read)?.isVisible = chapters.any { !it.chapter.read }
-            action_toolbar.findItem(R.id.action_mark_as_unread)?.isVisible = chapters.all { it.chapter.read }
+            binding.actionToolbar.findItem(R.id.action_download)?.isVisible = chapters.any { !it.isDownloaded }
+            binding.actionToolbar.findItem(R.id.action_delete)?.isVisible = chapters.any { it.isDownloaded }
+            binding.actionToolbar.findItem(R.id.action_mark_as_read)?.isVisible = chapters.any { !it.chapter.read }
+            binding.actionToolbar.findItem(R.id.action_mark_as_unread)?.isVisible = chapters.all { it.chapter.read }
         }
 
         return false
@@ -315,6 +339,7 @@ class UpdatesController : NucleusController<UpdatesPresenter>(),
     override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.action_select_all -> selectAll()
+            R.id.action_select_inverse -> selectInverse()
             R.id.action_download -> downloadChapters(getSelectedChapters())
             R.id.action_delete -> ConfirmDeleteChaptersDialog(this, getSelectedChapters())
                     .showDialog(router)
@@ -330,7 +355,7 @@ class UpdatesController : NucleusController<UpdatesPresenter>(),
      * @param mode the ActionMode object
      */
     override fun onDestroyActionMode(mode: ActionMode?) {
-        action_toolbar.hide()
+        binding.actionToolbar.hide()
         adapter?.mode = SelectableAdapter.Mode.IDLE
         adapter?.clearSelection()
         actionMode = null
@@ -340,5 +365,14 @@ class UpdatesController : NucleusController<UpdatesPresenter>(),
         val adapter = adapter ?: return
         adapter.selectAll()
         actionMode?.invalidate()
+    }
+
+    private fun selectInverse() {
+        val adapter = adapter ?: return
+        for (i in 0..adapter.itemCount) {
+            adapter.toggleSelection(i)
+        }
+        actionMode?.invalidate()
+        adapter.notifyDataSetChanged()
     }
 }

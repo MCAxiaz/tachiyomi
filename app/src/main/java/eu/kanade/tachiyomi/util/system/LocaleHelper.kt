@@ -7,6 +7,7 @@ import android.os.Build
 import android.view.ContextThemeWrapper
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
+import eu.kanade.tachiyomi.ui.catalogue.CataloguePresenter
 import java.util.Locale
 import uy.kohesive.injekt.injectLazy
 
@@ -16,14 +17,8 @@ import uy.kohesive.injekt.injectLazy
 @Suppress("DEPRECATION")
 object LocaleHelper {
 
-    /**
-     * Preferences helper.
-     */
     private val preferences: PreferencesHelper by injectLazy()
 
-    /**
-     * The system's locale.
-     */
     private var systemLocale: Locale? = null
 
     /**
@@ -56,6 +51,7 @@ object LocaleHelper {
         return when (lang) {
             null -> ""
             "" -> context.getString(R.string.other_source)
+            CataloguePresenter.PINNED_KEY -> context.getString(R.string.pinned_sources)
             "all" -> context.getString(R.string.all_lang)
             else -> {
                 val locale = getLocale(lang)
@@ -64,8 +60,8 @@ object LocaleHelper {
         }
     }
 
-    /*Return Locale from string language code
-
+    /**
+     * Return Locale from string language code
      */
     private fun getLocale(lang: String): Locale {
         val sp = lang.split("_", "-")

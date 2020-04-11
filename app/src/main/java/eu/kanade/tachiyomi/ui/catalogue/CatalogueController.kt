@@ -20,6 +20,7 @@ import eu.davidea.flexibleadapter.items.IFlexible
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.data.preference.getOrDefault
+import eu.kanade.tachiyomi.databinding.CatalogueMainControllerBinding
 import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.ui.base.controller.NucleusController
@@ -30,8 +31,6 @@ import eu.kanade.tachiyomi.ui.catalogue.browse.BrowseCatalogueController
 import eu.kanade.tachiyomi.ui.catalogue.global_search.CatalogueSearchController
 import eu.kanade.tachiyomi.ui.catalogue.latest.LatestUpdatesController
 import eu.kanade.tachiyomi.ui.setting.SettingsSourcesController
-import kotlinx.android.synthetic.main.catalogue_main_controller.fast_scroller
-import kotlinx.android.synthetic.main.catalogue_main_controller.recycler
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -48,9 +47,6 @@ class CatalogueController : NucleusController<CataloguePresenter>(),
         CatalogueAdapter.OnBrowseClickListener,
         CatalogueAdapter.OnLatestClickListener {
 
-    /**
-     * Application preferences.
-     */
     private val preferences: PreferencesHelper = Injekt.get()
 
     /**
@@ -58,28 +54,16 @@ class CatalogueController : NucleusController<CataloguePresenter>(),
      */
     private var adapter: CatalogueAdapter? = null
 
-    /**
-     * Called when controller is initialized.
-     */
+    private lateinit var binding: CatalogueMainControllerBinding
+
     init {
-        // Enable the option menu
         setHasOptionsMenu(true)
     }
 
-    /**
-     * Set the title of controller.
-     *
-     * @return title.
-     */
     override fun getTitle(): String? {
-        return applicationContext?.getString(R.string.label_catalogues)
+        return applicationContext?.getString(R.string.label_sources)
     }
 
-    /**
-     * Create the [CataloguePresenter] used in controller.
-     *
-     * @return instance of [CataloguePresenter]
-     */
     override fun createPresenter(): CataloguePresenter {
         return CataloguePresenter()
     }
@@ -92,24 +76,20 @@ class CatalogueController : NucleusController<CataloguePresenter>(),
      * @return inflated view.
      */
     override fun inflateView(inflater: LayoutInflater, container: ViewGroup): View {
-        return inflater.inflate(R.layout.catalogue_main_controller, container, false)
+        binding = CatalogueMainControllerBinding.inflate(inflater)
+        return binding.root
     }
 
-    /**
-     * Called when the view is created
-     *
-     * @param view view of controller
-     */
     override fun onViewCreated(view: View) {
         super.onViewCreated(view)
 
         adapter = CatalogueAdapter(this)
 
         // Create recycler and set adapter.
-        recycler.layoutManager = LinearLayoutManager(view.context)
-        recycler.adapter = adapter
-        recycler.addItemDecoration(SourceDividerItemDecoration(view.context))
-        adapter?.fastScroller = fast_scroller
+        binding.recycler.layoutManager = LinearLayoutManager(view.context)
+        binding.recycler.adapter = adapter
+        binding.recycler.addItemDecoration(SourceDividerItemDecoration(view.context))
+        adapter?.fastScroller = binding.fastScroller
 
         requestPermissionsSafe(arrayOf(WRITE_EXTERNAL_STORAGE), 301)
     }
@@ -137,14 +117,18 @@ class CatalogueController : NucleusController<CataloguePresenter>(),
         val activity = activity ?: return
         val item = adapter?.getItem(position) as? SourceItem ?: return
 
+        val isPinned = item.header?.code?.equals(CataloguePresenter.PINNED_KEY) ?: false
+
         MaterialDialog.Builder(activity)
                 .title(item.source.name)
-                .items(activity.getString(R.string.action_hide))
+                .items(
+                    activity.getString(R.string.action_hide),
+                    activity.getString(if (isPinned) R.string.action_unpin else R.string.action_pin)
+                )
                 .itemsCallback { _, _, which, _ ->
                     when (which) {
-                        0 -> {
-                            hideCatalogue(item.source)
-                        }
+                        0 -> hideCatalogue(item.source)
+                        1 -> pinCatalogue(item.source, isPinned)
                     }
                 }.show()
     }
@@ -152,6 +136,17 @@ class CatalogueController : NucleusController<CataloguePresenter>(),
     private fun hideCatalogue(source: Source) {
         val current = preferences.hiddenCatalogues().getOrDefault()
         preferences.hiddenCatalogues().set(current + source.id.toString())
+
+        presenter.updateSources()
+    }
+
+    private fun pinCatalogue(source: Source, isPinned: Boolean) {
+        val current = preferences.pinnedCatalogues().getOrDefault()
+        if (isPinned) {
+            preferences.pinnedCatalogues().set(current - source.id.toString())
+        } else {
+            preferences.pinnedCatalogues().set(current + source.id.toString())
+        }
 
         presenter.updateSources()
     }
