@@ -109,7 +109,7 @@ class PreferencesHelper(val context: Context) {
 
     fun cropBordersWebtoon() = rxPrefs.getBoolean(Keys.cropBordersWebtoon, false)
 
-    fun padPagesVertWebtoon() = rxPrefs.getBoolean(Keys.padPagesVertWebtoon, false)
+    fun webtoonSidePadding() = rxPrefs.getInteger(Keys.webtoonSidePadding, 0)
 
     fun readWithTapping() = rxPrefs.getBoolean(Keys.readWithTapping, true)
 
@@ -200,6 +200,8 @@ class PreferencesHelper(val context: Context) {
 
     fun hiddenCatalogues() = rxPrefs.getStringSet("hidden_catalogues", emptySet())
 
+    fun pinnedCatalogues() = rxPrefs.getStringSet("pinned_catalogues", emptySet())
+
     fun downloadNew() = rxPrefs.getBoolean(Keys.downloadNew, false)
 
     fun downloadNewCategories() = rxPrefs.getStringSet(Keys.downloadNewCategories, emptySet())
@@ -209,6 +211,8 @@ class PreferencesHelper(val context: Context) {
     fun defaultCategory() = prefs.getInt(Keys.defaultCategory, -1)
 
     fun skipRead() = prefs.getBoolean(Keys.skipRead, false)
+
+    fun skipFiltered() = prefs.getBoolean(Keys.skipFiltered, false)
 
     fun migrateFlags() = rxPrefs.getInteger("migrate_flags", Int.MAX_VALUE)
 
