@@ -6,13 +6,13 @@ import android.text.method.PasswordTransformationMethod
 import android.view.View
 import androidx.annotation.StringRes
 import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.customview.customView
 import com.bluelinelabs.conductor.ControllerChangeHandler
 import com.bluelinelabs.conductor.ControllerChangeType
 import com.dd.processbutton.iml.ActionProcessButton
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.ui.base.controller.DialogController
-import eu.kanade.tachiyomi.widget.SimpleTextWatcher
 import kotlinx.android.synthetic.main.pref_account_login.view.login
 import kotlinx.android.synthetic.main.pref_account_login.view.password
 import kotlinx.android.synthetic.main.pref_account_login.view.show_password
@@ -35,15 +35,13 @@ abstract class LoginDialogPreference(
     var requestSubscription: Subscription? = null
 
     override fun onCreateDialog(savedViewState: Bundle?): Dialog {
-        var dialogBuilder = MaterialDialog.Builder(activity!!)
-                .customView(R.layout.pref_account_login, false)
-                .negativeText(android.R.string.cancel)
+        var dialog = MaterialDialog(activity!!)
+            .customView(R.layout.pref_account_login)
+            .negativeButton(android.R.string.cancel)
 
         if (titleRes != null) {
-            dialogBuilder = dialogBuilder.title(activity!!.getString(titleRes, titleFormatArgs))
+            dialog = dialog.title(text = activity!!.getString(titleRes, titleFormatArgs))
         }
-
-        val dialog = dialogBuilder.build()
 
         onViewCreated(dialog.view)
 
@@ -53,10 +51,11 @@ abstract class LoginDialogPreference(
     fun onViewCreated(view: View) {
         v = view.apply {
             show_password.setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked)
+                if (isChecked) {
                     password.transformationMethod = null
-                else
+                } else {
                     password.transformationMethod = PasswordTransformationMethod()
+                }
             }
 
             if (usernameLabelRes != null) {
@@ -67,16 +66,6 @@ abstract class LoginDialogPreference(
             login.setOnClickListener { checkLogin() }
 
             setCredentialsOnView(this)
-
-            show_password.isEnabled = password.text.isNullOrEmpty()
-
-            password.addTextChangedListener(object : SimpleTextWatcher() {
-                override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                    if (s.isEmpty()) {
-                        show_password.isEnabled = true
-                    }
-                }
-            })
         }
     }
 

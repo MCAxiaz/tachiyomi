@@ -38,7 +38,6 @@
     <string name="action_next_chapter">Následující kapitola</string>
     <string name="action_remove">Odstranit</string>
     <string name="action_open_in_browser">Otevřít v prohlížeči</string>
-    <string name="action_add_to_home_screen">Přidat na plochu</string>
     <string name="action_display_grid">Mřížka</string>
     <string name="action_display_list">Seznam</string>
     <string name="action_cancel">Zrušit</string>
@@ -46,7 +45,6 @@
     <string name="action_share">Sdílet</string>
     <string name="action_save">Uložit</string>
     <string name="action_undo">Zpět</string>
-    <string name="action_export">Exportovat</string>
     <string name="action_create">Vytvořit</string>
     <string name="action_restore">Obnovit</string>
     <string name="action_open">Otevřít</string>
@@ -136,11 +134,8 @@
     <string name="manga_removed_library">Odstraněno z knihovny</string>
     <string name="manga_info_author_label">Autor</string>
     <string name="manga_info_chapters_label">Kapitoly</string>
-    <string name="manga_info_last_chapter_label">Poslední kapitola</string>
     <string name="manga_info_source_label">Zdroj</string>
     <string name="manga_info_genres_label">Žánry</string>
-    <string name="shortcut_created">Zástupce byl přidán na plochu.</string>
-    <string name="icon_creation_fail">Nepodařilo se vytvořit zástupce.</string>
     <string name="delete_downloads_for_manga">Smazat stažené kapitoly\?</string>
     <string name="source_not_installed">Zdroj není nainstalován: %1$s</string>
     <string name="manga_chapters_tab">Kapitoly</string>
@@ -191,7 +186,6 @@
     <string name="select">Vybrat</string>
     <string name="migrate">Migrovat</string>
     <string name="copy">Kopírovat</string>
-    <string name="migrating">Migrování…</string>
     <string name="download_queue_error">Došlo k chybě při stahování kapitol. Zkuste to znovu v sekci stahování</string>
     <string name="notification_update_progress">Postup aktualizace: %1$d/%2$d</string>
     <string name="notification_new_chapters">Nalezeny nové kapitoly</string>
@@ -212,7 +206,7 @@
     <string name="information_no_recent">Žádné nedávné kapitoly</string>
     <string name="information_no_recent_manga">Žádné nedávno čtené mangy</string>
     <string name="download_notifier_title_error">Chyba</string>
-    <string name="download_notifier_unkown_error">Došlo k neznámé chybě při stahování kapitoly</string>
+    <string name="download_notifier_unknown_error">Došlo k neznámé chybě při stahování kapitoly</string>
     <string name="download_notifier_page_error">V adresáři chybí stránka</string>
     <string name="download_notifier_page_ready_error">Stránka nebyla načtena</string>
     <string name="download_notifier_text_only_wifi">WiFi připojení není dostupné</string>
@@ -231,7 +225,6 @@
     <string name="action_update_library">Aktualizovat knihovnu</string>
     <string name="action_rename_category">Přejmenovat kategorii</string>
     <string name="action_move_category">Přesunout do kategorií</string>
-    <string name="action_start">Start</string>
     <string name="action_stop">Stop</string>
     <string name="action_pause">Pauza</string>
     <string name="action_retry">Opakovat</string>
@@ -239,11 +232,9 @@
     <string name="action_display_mode">Režim zobrazení</string>
     <string name="action_display">Zobrazení</string>
     <string name="action_display_download_badge">Odznáček stažení</string>
-    <string name="action_set_filter">Nastavit filtr</string>
     <string name="action_sort">Seřadit</string>
     <string name="action_reset">Resetovat</string>
     <string name="action_open_log">Otevřít log</string>
-    <string name="deleting">Mazání…</string>
     <string name="short_recent_updates">Aktualizace</string>
     <string name="pref_category_general">Obecné</string>
     <string name="pref_category_reader">Čtečka</string>
@@ -293,14 +284,9 @@
     <string name="pref_backup_directory">Adresář zálohy</string>
     <string name="pref_backup_service_category">Služba</string>
     <string name="pref_backup_interval">Frekvence zálohy</string>
-    <string name="dialog_restoring_backup">Obnovování zálohy
-\n%1$s přidáno do knihovny</string>
     <string name="source_not_found">Zdroj nebyl nalezen</string>
-    <string name="dialog_restoring_source_not_found">Obnovování zálohy
-\n%1$s zdrojů nenalezeno</string>
     <string name="backup_created">Záloha vytvořena</string>
     <string name="restore_completed">Obnova kompletní</string>
-    <string name="error_opening_log">Nelze otevřít log</string>
     <string name="backup_choice">Co chcete zálohovat\?</string>
     <string name="restoring_backup">Obnovování zálohy</string>
     <string name="creating_backup">Vytváření zálohy</string>
@@ -319,13 +305,11 @@
     <string name="pref_refresh_library_tracking_summary">Aktualizuje status, skóre a poslední přečtenou kapitolu ze sledovacích služeb</string>
     <string name="version">Verze</string>
     <string name="build_time">Čas sestavení</string>
-    <string name="pref_enable_automatic_updates">Zkontrolovat aktualizace</string>
     <string name="pref_enable_acra">Odesílat hlášení o pádu</string>
     <string name="pref_acra_summary">Pomáhá opravit chyby. Nebudou odeslány žádné citlivé údaje</string>
     <string name="updating_category">Aktualizace kategorie</string>
     <string name="local_source_badge">Lokální</string>
     <string name="also_delete_chapters">Odstranit také stažené kapitoly</string>
-    <string name="source_search_options">Filtry vyhledávání</string>
     <string name="source_requires_login">Tento zdroj vyžaduje přihlášení</string>
     <string name="select_source">Vybrat zdroj</string>
     <string name="no_valid_sources">Povolte prosím aspoň jeden platný zdroj</string>
@@ -336,13 +320,7 @@
     <string name="unknown">Neznámý</string>
     <string name="licensed">Licencovaný</string>
     <string name="manga_info_artist_label">Kreslíř</string>
-    <string name="manga_info_latest_data_label">Aktualizováno</string>
     <string name="manga_info_status_label">Stav</string>
-    <string name="circular_icon">Kruhová ikona</string>
-    <string name="rounded_icon">Zaoblená ikona</string>
-    <string name="square_icon">Čtvercová ikona</string>
-    <string name="shortcut_title">Název zástupce</string>
-    <string name="icon_shape">Tvar ikony</string>
     <string name="copied_to_clipboard">%1$s zkopírováno do schránky</string>
     <string name="chapter_queued">Ve frontě</string>
     <string name="fetch_chapters_error">Chyba při načítání kapitol.</string>
@@ -382,10 +360,8 @@
 \nNalezené chyby: %2$s.</string>
     <string name="backup_restore_content">Obnovení používá zdroje pro načítání dat, mohou být účtovány poplatky od operátora (v případě použití datového připojení).
 \nTaké se před obnovením ujistěte, že jste správně přihlášeni do zdrojů, které to vyžadují.</string>
-    <string name="file_saved">Soubor uložen do %1$s</string>
     <string name="choices_reset">Volby dialogu se vynulují</string>
     <string name="pref_refresh_library_metadata_summary">Aktualizuje obaly, žánry, popisy a informace o stavu mangy</string>
-    <string name="pref_enable_automatic_updates_summary">Automaticky kontrolovat aktualizace aplikace</string>
     <string name="login_title">Přihlásit se do %1$s</string>
     <string name="library_search_hint">Název nebo autor…</string>
     <string name="invalid_combination">Výchozí nemůže být vybrána s ostatními kategoriemi</string>
@@ -395,9 +371,7 @@
     <string name="error_category_exists">Kategorie s tímto jménem již existuje!</string>
     <string name="dialog_with_checkbox_remove_description">Toto odstraní datum přečtení této kapitoly. Jste si jistý\?</string>
     <string name="confirm_set_image_as_cover">Chcete tento obrázek nastavit jako obal\?</string>
-    <string name="viewer_for_this_series">Prohlížeč této série</string>
     <string name="transition_pages_error">Chyba při načítání stránek: %1$s</string>
-    <string name="recent_manga_source">%1$s - K.%2$s</string>
     <string name="migration_info">Klepnutím vyberte zdroj, ze kterého chcete migrovat</string>
     <string name="migration_dialog_what_to_include">Vyberte data, která chcete zahrnout</string>
     <string name="notification_cover_update_failed">Chyba při aktualizaci obalu</string>
@@ -440,4 +414,5 @@
     <string name="pref_category_library_categories">Kategorie</string>
     <string name="logout_title">Odhlásit z %1$s\?</string>
     <string name="logout_success">Byl jste odhlášen</string>
+    <string name="paused">Pozastaveno</string>
 </resources>

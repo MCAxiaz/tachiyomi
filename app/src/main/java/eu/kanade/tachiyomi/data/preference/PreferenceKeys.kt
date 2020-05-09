@@ -11,6 +11,8 @@ object PreferenceKeys {
 
     const val themeDark = "pref_theme_dark_key"
 
+    const val confirmExit = "pref_confirm_exit"
+
     const val rotation = "pref_rotation_type_key"
 
     const val enableTransitions = "pref_enable_transitions_key"
@@ -99,6 +101,8 @@ object PreferenceKeys {
 
     const val libraryUpdatePrioritization = "library_update_prioritization"
 
+    const val downloadedOnly = "pref_downloaded_only"
+
     const val filterDownloaded = "pref_filter_downloaded_key"
 
     const val filterUnread = "pref_filter_unread_key"
@@ -106,8 +110,6 @@ object PreferenceKeys {
     const val filterCompleted = "pref_filter_completed_key"
 
     const val librarySortingMode = "library_sorting_mode"
-
-    const val automaticUpdates = "automatic_updates"
 
     const val automaticExtUpdates = "automatic_ext_updates"
 
@@ -141,7 +143,11 @@ object PreferenceKeys {
 
     const val downloadBadge = "display_download_badge"
 
+    const val unreadBadge = "display_unread_badge"
+
     const val alwaysShowChapterTransition = "always_show_chapter_transition"
+
+    const val searchPinnedSourcesOnly = "search_pinned_sources_only"
 
     fun trackUsername(syncId: Int) = "pref_mangasync_username_$syncId"
 

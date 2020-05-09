@@ -18,7 +18,7 @@ import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.DatabaseHelper
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.track.TrackManager
-import eu.kanade.tachiyomi.databinding.MangaControllerBinding
+import eu.kanade.tachiyomi.databinding.PagerControllerBinding
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.ui.base.controller.RxController
@@ -34,12 +34,14 @@ import rx.Subscription
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
-class MangaController : RxController, TabbedController {
+class MangaController : RxController<PagerControllerBinding>, TabbedController {
 
-    constructor(manga: Manga?, fromCatalogue: Boolean = false) : super(Bundle().apply {
-        putLong(MANGA_EXTRA, manga?.id ?: 0)
-        putBoolean(FROM_CATALOGUE_EXTRA, fromCatalogue)
-    }) {
+    constructor(manga: Manga?, fromSource: Boolean = false) : super(
+        Bundle().apply {
+            putLong(MANGA_EXTRA, manga?.id ?: 0)
+            putBoolean(FROM_SOURCE_EXTRA, fromSource)
+        }
+    ) {
         this.manga = manga
         if (manga != null) {
             source = Injekt.get<SourceManager>().getOrStub(manga.source)
@@ -47,7 +49,8 @@ class MangaController : RxController, TabbedController {
     }
 
     constructor(mangaId: Long) : this(
-            Injekt.get<DatabaseHelper>().getManga(mangaId).executeAsBlocking())
+        Injekt.get<DatabaseHelper>().getManga(mangaId).executeAsBlocking()
+    )
 
     @Suppress("unused")
     constructor(bundle: Bundle) : this(bundle.getLong(MANGA_EXTRA))
@@ -60,15 +63,13 @@ class MangaController : RxController, TabbedController {
 
     private var adapter: MangaDetailAdapter? = null
 
-    val fromCatalogue = args.getBoolean(FROM_CATALOGUE_EXTRA, false)
+    val fromSource = args.getBoolean(FROM_SOURCE_EXTRA, false)
 
     val lastUpdateRelay: BehaviorRelay<Date> = BehaviorRelay.create()
 
     val chapterCountRelay: BehaviorRelay<Float> = BehaviorRelay.create()
 
     val mangaFavoriteRelay: PublishRelay<Boolean> = PublishRelay.create()
-
-    private lateinit var binding: MangaControllerBinding
 
     private val trackingIconRelay: BehaviorRelay<Boolean> = BehaviorRelay.create()
 
@@ -79,7 +80,7 @@ class MangaController : RxController, TabbedController {
     }
 
     override fun inflateView(inflater: LayoutInflater, container: ViewGroup): View {
-        binding = MangaControllerBinding.inflate(inflater)
+        binding = PagerControllerBinding.inflate(inflater)
         return binding.root
     }
 
@@ -91,11 +92,12 @@ class MangaController : RxController, TabbedController {
         requestPermissionsSafe(arrayOf(WRITE_EXTERNAL_STORAGE), 301)
 
         adapter = MangaDetailAdapter()
-        binding.mangaPager.offscreenPageLimit = 3
-        binding.mangaPager.adapter = adapter
+        binding.pager.offscreenPageLimit = 3
+        binding.pager.adapter = adapter
 
-        if (!fromCatalogue)
-            binding.mangaPager.currentItem = CHAPTERS_CONTROLLER
+        if (!fromSource) {
+            binding.pager.currentItem = CHAPTERS_CONTROLLER
+        }
     }
 
     override fun onDestroyView(view: View) {
@@ -106,7 +108,7 @@ class MangaController : RxController, TabbedController {
     override fun onChangeStarted(handler: ControllerChangeHandler, type: ControllerChangeType) {
         super.onChangeStarted(handler, type)
         if (type.isEnter) {
-            activity?.tabs?.setupWithViewPager(binding.mangaPager)
+            activity?.tabs?.setupWithViewPager(binding.pager)
             trackingIconSubscription = trackingIconRelay.subscribe { setTrackingIconInternal(it) }
         }
     }
@@ -137,9 +139,11 @@ class MangaController : RxController, TabbedController {
 
     private fun setTrackingIconInternal(visible: Boolean) {
         val tab = activity?.tabs?.getTabAt(TRACK_CONTROLLER) ?: return
-        val drawable = if (visible)
+        val drawable = if (visible) {
             VectorDrawableCompat.create(resources!!, R.drawable.ic_done_white_18dp, null)
-        else null
+        } else {
+            null
+        }
 
         tab.icon = drawable
     }
@@ -149,10 +153,11 @@ class MangaController : RxController, TabbedController {
         private val tabCount = if (Injekt.get<TrackManager>().hasLoggedServices()) 3 else 2
 
         private val tabTitles = listOf(
-                R.string.manga_detail_tab,
-                R.string.manga_chapters_tab,
-                R.string.manga_tracking_tab)
-                .map { resources!!.getString(it) }
+            R.string.manga_detail_tab,
+            R.string.manga_chapters_tab,
+            R.string.manga_tracking_tab
+        )
+            .map { resources!!.getString(it) }
 
         override fun getCount(): Int {
             return tabCount
@@ -161,7 +166,7 @@ class MangaController : RxController, TabbedController {
         override fun configureRouter(router: Router, position: Int) {
             if (!router.hasRootController()) {
                 val controller = when (position) {
-                    INFO_CONTROLLER -> MangaInfoController()
+                    INFO_CONTROLLER -> MangaInfoController(fromSource)
                     CHAPTERS_CONTROLLER -> ChaptersController()
                     TRACK_CONTROLLER -> TrackController()
                     else -> error("Wrong position $position")
@@ -176,7 +181,7 @@ class MangaController : RxController, TabbedController {
     }
 
     companion object {
-        const val FROM_CATALOGUE_EXTRA = "from_catalogue"
+        const val FROM_SOURCE_EXTRA = "from_source"
         const val MANGA_EXTRA = "manga"
 
         const val INFO_CONTROLLER = 0

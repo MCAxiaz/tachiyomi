@@ -4,11 +4,13 @@ import androidx.biometric.BiometricManager
 import androidx.preference.PreferenceScreen
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.preference.PreferenceKeys as Keys
+import eu.kanade.tachiyomi.data.preference.asImmediateFlow
 import eu.kanade.tachiyomi.util.preference.defaultValue
 import eu.kanade.tachiyomi.util.preference.intListPreference
 import eu.kanade.tachiyomi.util.preference.summaryRes
 import eu.kanade.tachiyomi.util.preference.switchPreference
 import eu.kanade.tachiyomi.util.preference.titleRes
+import kotlinx.coroutines.flow.launchIn
 
 class SettingsSecurityController : SettingsController() {
 
@@ -36,8 +38,8 @@ class SettingsSecurityController : SettingsController() {
                 defaultValue = "0"
                 summary = "%s"
 
-                preferences.useBiometricLock().asObservable()
-                        .subscribeUntilDestroy { isVisible = it }
+                preferences.useBiometricLock().asImmediateFlow { isVisible = it }
+                    .launchIn(scope)
             }
         }
 

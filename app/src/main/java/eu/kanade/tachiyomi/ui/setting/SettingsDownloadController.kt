@@ -10,13 +10,14 @@ import android.os.Environment
 import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceScreen
 import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.hippo.unifile.UniFile
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.DatabaseHelper
 import eu.kanade.tachiyomi.data.database.models.Category
 import eu.kanade.tachiyomi.data.preference.PreferenceKeys as Keys
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
-import eu.kanade.tachiyomi.data.preference.getOrDefault
+import eu.kanade.tachiyomi.data.preference.asImmediateFlow
 import eu.kanade.tachiyomi.ui.base.controller.DialogController
 import eu.kanade.tachiyomi.util.preference.defaultValue
 import eu.kanade.tachiyomi.util.preference.entriesRes
@@ -29,6 +30,8 @@ import eu.kanade.tachiyomi.util.preference.switchPreference
 import eu.kanade.tachiyomi.util.preference.titleRes
 import eu.kanade.tachiyomi.util.system.getFilePicker
 import java.io.File
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
@@ -49,11 +52,12 @@ class SettingsDownloadController : SettingsController() {
                 ctrl.showDialog(router)
             }
 
-            preferences.downloadsDirectory().asObservable()
-                    .subscribeUntilDestroy { path ->
-                        val dir = UniFile.fromUri(context, Uri.parse(path))
-                        summary = dir.filePath ?: path
-                    }
+            preferences.downloadsDirectory().asFlow()
+                .onEach { path ->
+                    val dir = UniFile.fromUri(context, Uri.parse(path))
+                    summary = dir.filePath ?: path
+                }
+                .launchIn(scope)
         }
         switchPreference {
             key = Keys.downloadOnlyOverWifi
@@ -71,9 +75,11 @@ class SettingsDownloadController : SettingsController() {
             intListPreference {
                 key = Keys.removeAfterReadSlots
                 titleRes = R.string.pref_remove_after_read
-                entriesRes = arrayOf(R.string.disabled, R.string.last_read_chapter,
-                        R.string.second_to_last, R.string.third_to_last, R.string.fourth_to_last,
-                        R.string.fifth_to_last)
+                entriesRes = arrayOf(
+                    R.string.disabled, R.string.last_read_chapter,
+                    R.string.second_to_last, R.string.third_to_last, R.string.fourth_to_last,
+                    R.string.fifth_to_last
+                )
                 entryValues = arrayOf("-1", "0", "1", "2", "3", "4")
                 defaultValue = "-1"
                 summary = "%s"
@@ -97,20 +103,22 @@ class SettingsDownloadController : SettingsController() {
                 entries = categories.map { it.name }.toTypedArray()
                 entryValues = categories.map { it.id.toString() }.toTypedArray()
 
-                preferences.downloadNew().asObservable()
-                        .subscribeUntilDestroy { isVisible = it }
+                preferences.downloadNew().asImmediateFlow { isVisible = it }
+                    .launchIn(scope)
 
-                preferences.downloadNewCategories().asObservable()
-                        .subscribeUntilDestroy {
-                            val selectedCategories = it
-                                    .mapNotNull { id -> categories.find { it.id == id.toInt() } }
-                                    .sortedBy { it.order }
+                preferences.downloadNewCategories().asFlow()
+                    .onEach { mutableSet ->
+                        val selectedCategories = mutableSet
+                            .mapNotNull { id -> categories.find { it.id == id.toInt() } }
+                            .sortedBy { it.order }
 
-                            summary = if (selectedCategories.isEmpty())
-                                resources?.getString(R.string.all)
-                            else
-                                selectedCategories.joinToString { it.name }
+                        summary = if (selectedCategories.isEmpty()) {
+                            resources?.getString(R.string.all)
+                        } else {
+                            selectedCategories.joinToString { it.name }
                         }
+                    }
+                    .launchIn(scope)
             }
         }
     }
@@ -121,7 +129,7 @@ class SettingsDownloadController : SettingsController() {
                 val context = applicationContext ?: return
                 val uri = data.data
                 val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION
 
                 if (uri != null) {
                     @Suppress("NewApi")
@@ -154,31 +162,31 @@ class SettingsDownloadController : SettingsController() {
 
         override fun onCreateDialog(savedViewState: Bundle?): Dialog {
             val activity = activity!!
-            val currentDir = preferences.downloadsDirectory().getOrDefault()
-            val externalDirs = getExternalDirs() + File(activity.getString(R.string.custom_dir))
-            val selectedIndex = externalDirs.map(File::toString).indexOfFirst { it in currentDir }
+            val currentDir = preferences.downloadsDirectory().get()
+            val externalDirs = (getExternalDirs() + File(activity.getString(R.string.custom_dir))).map(File::toString)
+            val selectedIndex = externalDirs.indexOfFirst { it in currentDir }
 
-            return MaterialDialog.Builder(activity)
-                    .items(externalDirs)
-                    .itemsCallbackSingleChoice(selectedIndex) { _, _, which, text ->
-                        val target = targetController as? SettingsDownloadController
-                        if (which == externalDirs.lastIndex) {
-                            target?.customDirectorySelected(currentDir)
-                        } else {
-                            target?.predefinedDirectorySelected(text.toString())
-                        }
-                        true
+            return MaterialDialog(activity)
+                .listItemsSingleChoice(
+                    items = externalDirs,
+                    initialSelection = selectedIndex
+                ) { _, position, text ->
+                    val target = targetController as? SettingsDownloadController
+                    if (position == externalDirs.lastIndex) {
+                        target?.customDirectorySelected(currentDir)
+                    } else {
+                        target?.predefinedDirectorySelected(text.toString())
                     }
-                    .build()
+                }
         }
 
         private fun getExternalDirs(): List<File> {
             val defaultDir = Environment.getExternalStorageDirectory().absolutePath +
-                    File.separator + resources?.getString(R.string.app_name) +
-                    File.separator + "downloads"
+                File.separator + resources?.getString(R.string.app_name) +
+                File.separator + "downloads"
 
             return mutableListOf(File(defaultDir)) +
-                    ContextCompat.getExternalFilesDirs(activity!!, "").filterNotNull()
+                ContextCompat.getExternalFilesDirs(activity!!, "").filterNotNull()
         }
     }
 

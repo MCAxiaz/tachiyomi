@@ -24,11 +24,9 @@ import eu.kanade.tachiyomi.util.view.visible
 class StateImageViewTarget(
     view: ImageView,
     val progress: View? = null,
-    val errorDrawableRes: Int = R.drawable.ic_broken_image_grey_24dp,
-    val errorScaleType: ScaleType = ScaleType.CENTER
-) :
-
-        ImageViewTarget<Drawable>(view) {
+    private val errorDrawableRes: Int = R.drawable.ic_broken_image_grey_24dp,
+    private val errorScaleType: ScaleType = ScaleType.CENTER
+) : ImageViewTarget<Drawable>(view) {
 
     private var resource: Drawable? = null
 
@@ -48,7 +46,7 @@ class StateImageViewTarget(
         view.scaleType = errorScaleType
 
         val vector = VectorDrawableCompat.create(view.context.resources, errorDrawableRes, null)
-        vector?.setTint(view.context.getResourceColor(android.R.attr.textColorSecondary))
+        vector?.setTint(view.context.getResourceColor(R.attr.colorOnBackground, 0.38f))
         view.setImageDrawable(vector)
     }
 

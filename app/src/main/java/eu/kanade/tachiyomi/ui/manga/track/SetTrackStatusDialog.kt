@@ -3,6 +3,7 @@ package eu.kanade.tachiyomi.ui.manga.track
 import android.app.Dialog
 import android.os.Bundle
 import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.bluelinelabs.conductor.Controller
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Track
@@ -16,9 +17,11 @@ class SetTrackStatusDialog<T> : DialogController
 
     private val item: TrackItem
 
-    constructor(target: T, item: TrackItem) : super(Bundle().apply {
-        putSerializable(KEY_ITEM_TRACK, item.track)
-    }) {
+    constructor(target: T, item: TrackItem) : super(
+        Bundle().apply {
+            putSerializable(KEY_ITEM_TRACK, item.track)
+        }
+    ) {
         targetController = target
         this.item = item
     }
@@ -33,18 +36,20 @@ class SetTrackStatusDialog<T> : DialogController
     override fun onCreateDialog(savedViewState: Bundle?): Dialog {
         val item = item
         val statusList = item.service.getStatusList()
-        val statusString = statusList.mapNotNull { item.service.getStatus(it) }
+        val statusString = statusList.map { item.service.getStatus(it) }
         val selectedIndex = statusList.indexOf(item.track?.status)
 
-        return MaterialDialog.Builder(activity!!)
-                .title(R.string.status)
-                .negativeText(android.R.string.cancel)
-                .items(statusString)
-                .itemsCallbackSingleChoice(selectedIndex) { _, _, i, _ ->
-                    (targetController as? Listener)?.setStatus(item, i)
-                    true
-                }
-                .build()
+        return MaterialDialog(activity!!)
+            .title(R.string.status)
+            .negativeButton(android.R.string.cancel)
+            .listItemsSingleChoice(
+                items = statusString,
+                initialSelection = selectedIndex,
+                waitForPositiveButton = false
+            ) { dialog, position, _ ->
+                (targetController as? Listener)?.setStatus(item, position)
+                dialog.dismiss()
+            }
     }
 
     interface Listener {

@@ -16,8 +16,6 @@ import androidx.core.graphics.drawable.DrawableCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
-import com.jakewharton.rxbinding.support.v4.widget.refreshes
-import com.jakewharton.rxbinding.view.clicks
 import eu.davidea.flexibleadapter.FlexibleAdapter
 import eu.davidea.flexibleadapter.SelectableAdapter
 import eu.kanade.tachiyomi.R
@@ -26,22 +24,29 @@ import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.databinding.ChaptersControllerBinding
 import eu.kanade.tachiyomi.ui.base.controller.NucleusController
-import eu.kanade.tachiyomi.ui.base.controller.popControllerWithTag
+import eu.kanade.tachiyomi.ui.main.offsetFabAppbarHeight
 import eu.kanade.tachiyomi.ui.manga.MangaController
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.util.system.getResourceColor
 import eu.kanade.tachiyomi.util.system.toast
 import eu.kanade.tachiyomi.util.view.getCoordinates
+import eu.kanade.tachiyomi.util.view.gone
 import eu.kanade.tachiyomi.util.view.shrinkOnScroll
 import eu.kanade.tachiyomi.util.view.snack
+import eu.kanade.tachiyomi.util.view.visible
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import reactivecircus.flowbinding.android.view.clicks
+import reactivecircus.flowbinding.swiperefreshlayout.refreshes
 import timber.log.Timber
 
-class ChaptersController : NucleusController<ChaptersPresenter>(),
-        ActionMode.Callback,
-        FlexibleAdapter.OnItemClickListener,
-        FlexibleAdapter.OnItemLongClickListener,
-        DownloadCustomChaptersDialog.Listener,
-        DeleteChaptersDialog.Listener {
+class ChaptersController :
+    NucleusController<ChaptersControllerBinding, ChaptersPresenter>(),
+    ActionMode.Callback,
+    FlexibleAdapter.OnItemClickListener,
+    FlexibleAdapter.OnItemLongClickListener,
+    DownloadCustomChaptersDialog.Listener,
+    DeleteChaptersDialog.Listener {
 
     /**
      * Adapter containing a list of chapters.
@@ -60,8 +65,6 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
 
     private var lastClickPosition = -1
 
-    private lateinit var binding: ChaptersControllerBinding
-
     init {
         setHasOptionsMenu(true)
         setOptionsMenuHidden(true)
@@ -69,8 +72,10 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
 
     override fun createPresenter(): ChaptersPresenter {
         val ctrl = parentController as MangaController
-        return ChaptersPresenter(ctrl.manga!!, ctrl.source!!,
-                ctrl.chapterCountRelay, ctrl.lastUpdateRelay, ctrl.mangaFavoriteRelay)
+        return ChaptersPresenter(
+            ctrl.manga!!, ctrl.source!!,
+            ctrl.chapterCountRelay, ctrl.lastUpdateRelay, ctrl.mangaFavoriteRelay
+        )
     }
 
     override fun inflateView(inflater: LayoutInflater, container: ViewGroup): View {
@@ -81,6 +86,9 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
     override fun onViewCreated(view: View) {
         super.onViewCreated(view)
 
+        val ctrl = parentController as MangaController
+        if (ctrl.manga == null || ctrl.source == null) return
+
         // Init RecyclerView and adapter
         adapter = ChaptersAdapter(this, view.context)
 
@@ -90,28 +98,36 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
         binding.recycler.setHasFixedSize(true)
         adapter?.fastScroller = binding.fastScroller
 
-        binding.swipeRefresh.refreshes().subscribeUntilDestroy { fetchChaptersFromSource() }
+        binding.swipeRefresh.refreshes()
+            .onEach { fetchChaptersFromSource() }
+            .launchIn(scope)
 
-        binding.fab.clicks().subscribeUntilDestroy {
-            val item = presenter.getNextUnreadChapter()
-            if (item != null) {
-                // Create animation listener
-                val revealAnimationListener: Animator.AnimatorListener = object : AnimatorListenerAdapter() {
-                    override fun onAnimationStart(animation: Animator?) {
-                        openChapter(item.chapter, true)
+        binding.fab.clicks()
+            .onEach {
+                val item = presenter.getNextUnreadChapter()
+                if (item != null) {
+                    // Create animation listener
+                    val revealAnimationListener: Animator.AnimatorListener = object : AnimatorListenerAdapter() {
+                        override fun onAnimationStart(animation: Animator?) {
+                            openChapter(item.chapter, true)
+                        }
                     }
-                }
 
-                // Get coordinates and start animation
-                val coordinates = binding.fab.getCoordinates()
-                if (!binding.revealView.showRevealEffect(coordinates.x, coordinates.y, revealAnimationListener)) {
-                    openChapter(item.chapter)
+                    // Get coordinates and start animation
+                    val coordinates = binding.fab.getCoordinates()
+                    if (!binding.revealView.showRevealEffect(coordinates.x, coordinates.y, revealAnimationListener)) {
+                        openChapter(item.chapter)
+                    }
+                } else {
+                    view.context.toast(R.string.no_next_chapter)
                 }
-            } else {
-                view.context.toast(R.string.no_next_chapter)
             }
-        }
+            .launchIn(scope)
+
         binding.fab.shrinkOnScroll(binding.recycler)
+
+        binding.actionToolbar.offsetFabAppbarHeight(activity!!)
+        binding.fab.offsetFabAppbarHeight(activity!!)
     }
 
     override fun onDestroyView(view: View) {
@@ -130,6 +146,7 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
             val coordinates = binding.fab.getCoordinates()
             binding.revealView.hideRevealEffect(coordinates.x, coordinates.y, 1920)
         }
+
         super.onActivityResumed(activity)
     }
 
@@ -150,6 +167,7 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
         menuFilterRead.isChecked = presenter.onlyRead()
         menuFilterUnread.isChecked = presenter.onlyUnread()
         menuFilterDownloaded.isChecked = presenter.onlyDownloaded()
+        menuFilterDownloaded.isEnabled = !presenter.forceDownloaded()
         menuFilterBookmarked.isChecked = presenter.onlyBookmarked()
         menuSourceOrder.isChecked = presenter.useSourceOrder()
 
@@ -164,11 +182,13 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
         menuFilterEmpty.isVisible = filterSet
 
         // Disable unread filter option if read filter is enabled.
-        if (presenter.onlyRead())
+        if (presenter.onlyRead()) {
             menuFilterUnread.isEnabled = false
+        }
         // Disable read filter option if unread filter is enabled.
-        if (presenter.onlyUnread())
+        if (presenter.onlyUnread()) {
             menuFilterRead.isEnabled = false
+        }
 
         // Display mode submenu
         if (presenter.manga.displayMode == Manga.DISPLAY_NAME) {
@@ -251,7 +271,7 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
 
     private fun initialFetchChapters() {
         // Only fetch if this view is from the catalog and it hasn't requested previously
-        if ((parentController as MangaController).fromCatalogue && !presenter.hasRequested) {
+        if ((parentController as MangaController).fromSource && !presenter.hasRequested) {
             fetchChaptersFromSource()
         }
     }
@@ -290,13 +310,13 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
     override fun onItemClick(view: View?, position: Int): Boolean {
         val adapter = adapter ?: return false
         val item = adapter.getItem(position) ?: return false
-        if (actionMode != null && adapter.mode == SelectableAdapter.Mode.MULTI) {
+        return if (actionMode != null && adapter.mode == SelectableAdapter.Mode.MULTI) {
             lastClickPosition = position
             toggleSelection(position)
-            return true
+            true
         } else {
             openChapter(item.chapter)
-            return false
+            false
         }
     }
 
@@ -304,10 +324,12 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
         createActionModeIfNeeded()
         when {
             lastClickPosition == -1 -> setSelection(position)
-            lastClickPosition > position -> for (i in position until lastClickPosition)
-                setSelection(i)
-            lastClickPosition < position -> for (i in lastClickPosition + 1..position)
-                setSelection(i)
+            lastClickPosition > position ->
+                for (i in position until lastClickPosition)
+                    setSelection(i)
+            lastClickPosition < position ->
+                for (i in lastClickPosition + 1..position)
+                    setSelection(i)
             else -> setSelection(position)
         }
         lastClickPosition = position
@@ -348,9 +370,9 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
         if (actionMode == null) {
             actionMode = (activity as? AppCompatActivity)?.startSupportActionMode(this)
             binding.actionToolbar.show(
-                    actionMode!!,
-                    R.menu.chapter_selection
-            ) { onActionItemClicked(actionMode!!, it!!) }
+                actionMode!!,
+                R.menu.chapter_selection
+            ) { onActionItemClicked(it!!) }
         }
     }
 
@@ -382,12 +404,17 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
             binding.actionToolbar.findItem(R.id.action_mark_as_unread)?.isVisible = chapters.all { it.chapter.read }
 
             // Hide FAB to avoid interfering with the bottom action toolbar
-            binding.fab.hide()
+            // binding.fab.hide()
+            binding.fab.gone()
         }
         return false
     }
 
     override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
+        return onActionItemClicked(item)
+    }
+
+    private fun onActionItemClicked(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.action_select_all -> selectAll()
             R.id.action_select_inverse -> selectInverse()
@@ -410,7 +437,10 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
         selectedItems.clear()
         actionMode = null
 
-        binding.fab.show()
+        // TODO: there seems to be a bug in MaterialComponents where the [ExtendedFloatingActionButton]
+        // fails to show up properly
+        // binding.fab.show()
+        binding.fab.visible()
     }
 
     override fun onDetach(view: View) {
@@ -429,9 +459,13 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
 
     private fun selectInverse() {
         val adapter = adapter ?: return
+
+        selectedItems.clear()
         for (i in 0..adapter.itemCount) {
             adapter.toggleSelection(i)
         }
+        selectedItems.addAll(adapter.selectedPositions.mapNotNull { adapter.getItem(it) })
+
         actionMode?.invalidate()
         adapter.notifyDataSetChanged()
     }
@@ -441,10 +475,12 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
         if (presenter.preferences.removeAfterMarkedAsRead()) {
             deleteChapters(chapters)
         }
+        destroyActionModeIfNeeded()
     }
 
     private fun markAsUnread(chapters: List<ChapterItem>) {
         presenter.markChaptersRead(chapters, false)
+        destroyActionModeIfNeeded()
     }
 
     private fun downloadChapters(chapters: List<ChapterItem>) {
@@ -457,6 +493,7 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
                 }
             }
         }
+        destroyActionModeIfNeeded()
     }
 
     private fun showDeleteChaptersConfirmationDialog() {
@@ -474,21 +511,22 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
         if (chapterPos != -1) {
             markAsRead(prevChapters.take(chapterPos))
         }
+        destroyActionModeIfNeeded()
     }
 
     private fun bookmarkChapters(chapters: List<ChapterItem>, bookmarked: Boolean) {
         presenter.bookmarkChapters(chapters, bookmarked)
+        destroyActionModeIfNeeded()
     }
 
     fun deleteChapters(chapters: List<ChapterItem>) {
         if (chapters.isEmpty()) return
 
-        DeletingChaptersDialog().showDialog(router)
         presenter.deleteChapters(chapters)
+        destroyActionModeIfNeeded()
     }
 
     fun onChaptersDeleted(chapters: List<ChapterItem>) {
-        dismissDeletingDialog()
         // this is needed so the downloaded text gets removed from the item
         chapters.forEach {
             adapter?.updateItem(it)
@@ -497,12 +535,7 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
     }
 
     fun onChaptersDeletedError(error: Throwable) {
-        dismissDeletingDialog()
         Timber.e(error)
-    }
-
-    private fun dismissDeletingDialog() {
-        router.popControllerWithTag(DeletingChaptersDialog.TAG)
     }
 
     // OVERFLOW MENU DIALOGS
@@ -513,9 +546,9 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
     }
 
     private fun getUnreadChaptersSorted() = presenter.chapters
-            .filter { !it.read && it.status == Download.NOT_DOWNLOADED }
-            .distinctBy { it.name }
-            .sortedByDescending { it.source_order }
+        .filter { !it.read && it.status == Download.NOT_DOWNLOADED }
+        .distinctBy { it.name }
+        .sortedByDescending { it.source_order }
 
     private fun downloadChapters(choice: Int) {
         val chaptersToDownload = when (choice) {
@@ -533,6 +566,7 @@ class ChaptersController : NucleusController<ChaptersPresenter>(),
         if (chaptersToDownload.isNotEmpty()) {
             downloadChapters(chaptersToDownload)
         }
+        destroyActionModeIfNeeded()
     }
 
     private fun showCustomDownloadDialog() {

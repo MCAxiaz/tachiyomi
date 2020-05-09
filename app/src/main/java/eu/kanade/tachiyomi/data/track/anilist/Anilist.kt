@@ -5,7 +5,6 @@ import android.graphics.Color
 import com.google.gson.Gson
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Track
-import eu.kanade.tachiyomi.data.preference.getOrDefault
 import eu.kanade.tachiyomi.data.track.TrackService
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import rx.Completable
@@ -75,7 +74,7 @@ class Anilist(private val context: Context, id: Int) : TrackService(id) {
     override fun getCompletionStatus(): Int = COMPLETED
 
     override fun getScoreList(): List<String> {
-        return when (scorePreference.getOrDefault()) {
+        return when (scorePreference.get()) {
             // 10 point
             POINT_10 -> IntRange(0, 10).map(Int::toString)
             // 100 point
@@ -91,19 +90,19 @@ class Anilist(private val context: Context, id: Int) : TrackService(id) {
     }
 
     override fun indexToScore(index: Int): Float {
-        return when (scorePreference.getOrDefault()) {
+        return when (scorePreference.get()) {
             // 10 point
             POINT_10 -> index * 10f
             // 100 point
             POINT_100 -> index.toFloat()
             // 5 stars
-            POINT_5 -> when {
-                index == 0 -> 0f
+            POINT_5 -> when (index) {
+                0 -> 0f
                 else -> index * 20f - 10f
             }
             // Smiley
-            POINT_3 -> when {
-                index == 0 -> 0f
+            POINT_3 -> when (index) {
+                0 -> 0f
                 else -> index * 25f + 10f
             }
             // 10 point decimal
@@ -115,9 +114,9 @@ class Anilist(private val context: Context, id: Int) : TrackService(id) {
     override fun displayScore(track: Track): String {
         val score = track.score
 
-        return when (scorePreference.getOrDefault()) {
-            POINT_5 -> when {
-                score == 0f -> "0 ★"
+        return when (scorePreference.get()) {
+            POINT_5 -> when (score) {
+                0f -> "0 ★"
                 else -> "${((score + 10) / 20).toInt()} ★"
             }
             POINT_3 -> when {
@@ -151,18 +150,18 @@ class Anilist(private val context: Context, id: Int) : TrackService(id) {
 
     override fun bind(track: Track): Observable<Track> {
         return api.findLibManga(track, getUsername().toInt())
-                .flatMap { remoteTrack ->
-                    if (remoteTrack != null) {
-                        track.copyPersonalFrom(remoteTrack)
-                        track.library_id = remoteTrack.library_id
-                        update(track)
-                    } else {
-                        // Set default fields if it's not found in the list
-                        track.score = DEFAULT_SCORE.toFloat()
-                        track.status = DEFAULT_STATUS
-                        add(track)
-                    }
+            .flatMap { remoteTrack ->
+                if (remoteTrack != null) {
+                    track.copyPersonalFrom(remoteTrack)
+                    track.library_id = remoteTrack.library_id
+                    update(track)
+                } else {
+                    // Set default fields if it's not found in the list
+                    track.score = DEFAULT_SCORE.toFloat()
+                    track.status = DEFAULT_STATUS
+                    add(track)
                 }
+            }
     }
 
     override fun search(query: String): Observable<List<TrackSearch>> {
@@ -171,11 +170,11 @@ class Anilist(private val context: Context, id: Int) : TrackService(id) {
 
     override fun refresh(track: Track): Observable<Track> {
         return api.getLibManga(track, getUsername().toInt())
-                .map { remoteTrack ->
-                    track.copyPersonalFrom(remoteTrack)
-                    track.total_chapters = remoteTrack.total_chapters
-                    track
-                }
+            .map { remoteTrack ->
+                track.copyPersonalFrom(remoteTrack)
+                track.total_chapters = remoteTrack.total_chapters
+                track
+            }
     }
 
     override fun login(username: String, password: String) = login(password)
@@ -193,7 +192,7 @@ class Anilist(private val context: Context, id: Int) : TrackService(id) {
 
     override fun logout() {
         super.logout()
-        preferences.trackToken(this).set(null)
+        preferences.trackToken(this).delete()
         interceptor.setAuth(null)
     }
 

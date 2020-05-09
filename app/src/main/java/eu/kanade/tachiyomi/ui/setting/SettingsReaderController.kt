@@ -11,6 +11,7 @@ import eu.kanade.tachiyomi.util.preference.preferenceCategory
 import eu.kanade.tachiyomi.util.preference.summaryRes
 import eu.kanade.tachiyomi.util.preference.switchPreference
 import eu.kanade.tachiyomi.util.preference.titleRes
+import eu.kanade.tachiyomi.util.system.hasDisplayCutout
 
 class SettingsReaderController : SettingsController() {
 
@@ -23,36 +24,21 @@ class SettingsReaderController : SettingsController() {
             intListPreference {
                 key = Keys.defaultViewer
                 titleRes = R.string.pref_viewer_type
-                entriesRes = arrayOf(R.string.left_to_right_viewer, R.string.right_to_left_viewer,
-                        R.string.vertical_viewer, R.string.webtoon_viewer, R.string.vertical_plus_viewer)
+                entriesRes = arrayOf(
+                    R.string.left_to_right_viewer, R.string.right_to_left_viewer,
+                    R.string.vertical_viewer, R.string.webtoon_viewer, R.string.vertical_plus_viewer
+                )
                 entryValues = arrayOf("1", "2", "3", "4", "5")
-                defaultValue = "1"
-                summary = "%s"
-            }
-            intListPreference {
-                key = Keys.imageScaleType
-                titleRes = R.string.pref_image_scale_type
-                entriesRes = arrayOf(R.string.scale_type_fit_screen, R.string.scale_type_stretch,
-                        R.string.scale_type_fit_width, R.string.scale_type_fit_height,
-                        R.string.scale_type_original_size, R.string.scale_type_smart_fit)
-                entryValues = arrayOf("1", "2", "3", "4", "5", "6")
-                defaultValue = "1"
-                summary = "%s"
-            }
-            intListPreference {
-                key = Keys.zoomStart
-                titleRes = R.string.pref_zoom_start
-                entriesRes = arrayOf(R.string.zoom_start_automatic, R.string.zoom_start_left,
-                        R.string.zoom_start_right, R.string.zoom_start_center)
-                entryValues = arrayOf("1", "2", "3", "4")
                 defaultValue = "1"
                 summary = "%s"
             }
             intListPreference {
                 key = Keys.rotation
                 titleRes = R.string.pref_rotation_type
-                entriesRes = arrayOf(R.string.rotation_free, R.string.rotation_lock,
-                        R.string.rotation_force_portrait, R.string.rotation_force_landscape)
+                entriesRes = arrayOf(
+                    R.string.rotation_free, R.string.rotation_lock,
+                    R.string.rotation_force_portrait, R.string.rotation_force_landscape
+                )
                 entryValues = arrayOf("1", "2", "3", "4")
                 defaultValue = "1"
                 summary = "%s"
@@ -60,9 +46,9 @@ class SettingsReaderController : SettingsController() {
             intListPreference {
                 key = Keys.readerTheme
                 titleRes = R.string.pref_reader_theme
-                entriesRes = arrayOf(R.string.white_background, R.string.black_background)
-                entryValues = arrayOf("0", "1")
-                defaultValue = "0"
+                entriesRes = arrayOf(R.string.black_background, R.string.gray_background, R.string.white_background)
+                entryValues = arrayOf("1", "2", "0")
+                defaultValue = "1"
                 summary = "%s"
             }
             intListPreference {
@@ -78,13 +64,15 @@ class SettingsReaderController : SettingsController() {
                 titleRes = R.string.pref_fullscreen
                 defaultValue = true
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+
+            if (activity?.hasDisplayCutout() == true) {
                 switchPreference {
                     key = Keys.cutoutShort
                     titleRes = R.string.pref_cutout_short
                     defaultValue = true
                 }
             }
+
             switchPreference {
                 key = Keys.keepScreenOn
                 titleRes = R.string.pref_keep_screen_on
@@ -99,6 +87,7 @@ class SettingsReaderController : SettingsController() {
                 switchPreference {
                     key = Keys.trueColor
                     titleRes = R.string.pref_true_color
+                    summaryRes = R.string.pref_true_color_summary
                     defaultValue = false
                 }
             }
@@ -121,7 +110,7 @@ class SettingsReaderController : SettingsController() {
             switchPreference {
                 key = Keys.skipFiltered
                 titleRes = R.string.pref_skip_filtered_chapters
-                defaultValue = false
+                defaultValue = true
             }
             switchPreference {
                 key = Keys.alwaysShowChapterTransition
@@ -133,6 +122,29 @@ class SettingsReaderController : SettingsController() {
         preferenceCategory {
             titleRes = R.string.pager_viewer
 
+            intListPreference {
+                key = Keys.imageScaleType
+                titleRes = R.string.pref_image_scale_type
+                entriesRes = arrayOf(
+                    R.string.scale_type_fit_screen, R.string.scale_type_stretch,
+                    R.string.scale_type_fit_width, R.string.scale_type_fit_height,
+                    R.string.scale_type_original_size, R.string.scale_type_smart_fit
+                )
+                entryValues = arrayOf("1", "2", "3", "4", "5", "6")
+                defaultValue = "1"
+                summary = "%s"
+            }
+            intListPreference {
+                key = Keys.zoomStart
+                titleRes = R.string.pref_zoom_start
+                entriesRes = arrayOf(
+                    R.string.zoom_start_automatic, R.string.zoom_start_left,
+                    R.string.zoom_start_right, R.string.zoom_start_center
+                )
+                entryValues = arrayOf("1", "2", "3", "4")
+                defaultValue = "1"
+                summary = "%s"
+            }
             switchPreference {
                 key = Keys.enableTransitions
                 titleRes = R.string.pref_page_transitions
@@ -162,7 +174,8 @@ class SettingsReaderController : SettingsController() {
                     R.string.webtoon_side_padding_10,
                     R.string.webtoon_side_padding_15,
                     R.string.webtoon_side_padding_20,
-                    R.string.webtoon_side_padding_25)
+                    R.string.webtoon_side_padding_25
+                )
                 entryValues = arrayOf("0", "10", "15", "20", "25")
                 defaultValue = "0"
                 summary = "%s"

@@ -3,6 +3,7 @@ package eu.kanade.tachiyomi.ui.webview
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.Menu
@@ -10,44 +11,54 @@ import android.view.MenuItem
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import androidx.core.graphics.ColorUtils
+import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.databinding.WebviewActivityBinding
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.ui.base.activity.BaseActivity
+import eu.kanade.tachiyomi.ui.main.ForceCloseActivity
 import eu.kanade.tachiyomi.util.system.WebViewClientCompat
 import eu.kanade.tachiyomi.util.system.getResourceColor
 import eu.kanade.tachiyomi.util.system.openInBrowser
 import eu.kanade.tachiyomi.util.system.toast
 import eu.kanade.tachiyomi.util.view.invisible
 import eu.kanade.tachiyomi.util.view.visible
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import reactivecircus.flowbinding.appcompat.navigationClicks
+import reactivecircus.flowbinding.swiperefreshlayout.refreshes
 import uy.kohesive.injekt.injectLazy
 
-class WebViewActivity : BaseActivity() {
+class WebViewActivity : BaseActivity<WebviewActivityBinding>() {
 
     private val sourceManager by injectLazy<SourceManager>()
 
     private var bundle: Bundle? = null
 
-    private lateinit var binding: WebviewActivityBinding
-
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = WebviewActivityBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+
+        try {
+            binding = WebviewActivityBinding.inflate(layoutInflater)
+            setContentView(binding.root)
+        } catch (e: Exception) {
+            // Potentially throws errors like "Error inflating class android.webkit.WebView"
+            ForceCloseActivity.closeApp(this)
+        }
 
         title = intent.extras?.getString(TITLE_KEY)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        binding.toolbar.setNavigationOnClickListener {
-            super.onBackPressed()
-        }
+        binding.toolbar.navigationClicks()
+            .onEach { super.onBackPressed() }
+            .launchIn(scope)
 
         binding.swipeRefresh.isEnabled = false
-        binding.swipeRefresh.setOnRefreshListener {
-            refreshPage()
-        }
+        binding.swipeRefresh.refreshes()
+            .onEach { refreshPage() }
+            .launchIn(scope)
 
         if (bundle == null) {
             val url = intent.extras!!.getString(URL_KEY) ?: return
@@ -60,6 +71,12 @@ class WebViewActivity : BaseActivity() {
             }
 
             supportActionBar?.subtitle = url
+
+            // Debug mode (chrome://inspect/#devices)
+            if (BuildConfig.DEBUG && 0 != applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) {
+                WebView.setWebContentsDebuggingEnabled(true)
+            }
+
             binding.webview.settings.javaScriptEnabled = true
 
             binding.webview.webChromeClient = object : WebChromeClient() {
@@ -113,14 +130,14 @@ class WebViewActivity : BaseActivity() {
     }
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        val backItem = binding.toolbar.menu.findItem(R.id.action_web_back)
-        val forwardItem = binding.toolbar.menu.findItem(R.id.action_web_forward)
+        val backItem = menu?.findItem(R.id.action_web_back)
+        val forwardItem = menu?.findItem(R.id.action_web_forward)
         backItem?.isEnabled = binding.webview.canGoBack()
         forwardItem?.isEnabled = binding.webview.canGoForward()
 
         val iconTintColor = getResourceColor(R.attr.colorOnPrimary)
         val translucentIconTintColor = ColorUtils.setAlphaComponent(iconTintColor, 127)
-        backItem.icon?.setTint(if (binding.webview.canGoBack()) iconTintColor else translucentIconTintColor)
+        backItem?.icon?.setTint(if (binding.webview.canGoBack()) iconTintColor else translucentIconTintColor)
         forwardItem?.icon?.setTint(if (binding.webview.canGoForward()) iconTintColor else translucentIconTintColor)
 
         return super.onPrepareOptionsMenu(menu)

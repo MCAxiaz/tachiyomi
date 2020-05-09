@@ -5,7 +5,6 @@ import androidx.preference.CheckBoxPreference
 import androidx.preference.PreferenceGroup
 import androidx.preference.PreferenceScreen
 import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.data.preference.getOrDefault
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.icon
 import eu.kanade.tachiyomi.source.online.HttpSource
@@ -25,14 +24,14 @@ class SettingsSourcesController : SettingsController() {
         titleRes = R.string.action_filter
 
         // Get the list of active language codes.
-        val activeLangsCodes = preferences.enabledLanguages().getOrDefault()
+        val activeLangsCodes = preferences.enabledLanguages().get()
 
         // Get a map of sources grouped by language.
         val sourcesByLang = onlineSources.groupByTo(TreeMap(), { it.lang })
 
         // Order first by active languages, then inactive ones
         val orderedLangs = sourcesByLang.keys.filter { it in activeLangsCodes } +
-                sourcesByLang.keys.filterNot { it in activeLangsCodes }
+            sourcesByLang.keys.filterNot { it in activeLangsCodes }
 
         orderedLangs.forEach { lang ->
             val sources = sourcesByLang[lang].orEmpty().sortedBy { it.name }
@@ -40,7 +39,7 @@ class SettingsSourcesController : SettingsController() {
             // Create a preference group and set initial state and change listener
             switchPreferenceCategory {
                 preferenceScreen.addPreference(this)
-                title = LocaleHelper.getDisplayName(lang, context)
+                title = LocaleHelper.getSourceDisplayName(lang, context)
                 isPersistent = false
                 if (lang in activeLangsCodes) {
                     setChecked(true)
@@ -49,7 +48,7 @@ class SettingsSourcesController : SettingsController() {
 
                 onChange { newValue ->
                     val checked = newValue as Boolean
-                    val current = preferences.enabledLanguages().getOrDefault()
+                    val current = preferences.enabledLanguages().get()
                     if (!checked) {
                         preferences.enabledLanguages().set(current - lang)
                         removeAll()
@@ -73,7 +72,7 @@ class SettingsSourcesController : SettingsController() {
      * @param group the language category.
      */
     private fun addLanguageSources(group: PreferenceGroup, sources: List<HttpSource>) {
-        val hiddenCatalogues = preferences.hiddenCatalogues().getOrDefault()
+        val hiddenCatalogues = preferences.hiddenCatalogues().get()
 
         sources.forEach { source ->
             val sourcePreference = CheckBoxPreference(group.context).apply {
@@ -90,12 +89,15 @@ class SettingsSourcesController : SettingsController() {
 
                 onChange { newValue ->
                     val checked = newValue as Boolean
-                    val current = preferences.hiddenCatalogues().getOrDefault()
+                    val current = preferences.hiddenCatalogues().get()
 
-                    preferences.hiddenCatalogues().set(if (checked)
-                        current - id
-                    else
-                        current + id)
+                    preferences.hiddenCatalogues().set(
+                        if (checked) {
+                            current - id
+                        } else {
+                            current + id
+                        }
+                    )
 
                     true
                 }

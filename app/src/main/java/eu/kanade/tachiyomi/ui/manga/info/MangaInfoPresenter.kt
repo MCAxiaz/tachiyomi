@@ -52,16 +52,16 @@ class MangaInfoPresenter(
 
         // Update chapter count
         chapterCountRelay.observeOn(AndroidSchedulers.mainThread())
-                .subscribeLatestCache(MangaInfoController::setChapterCount)
+            .subscribeLatestCache(MangaInfoController::setChapterCount)
 
         // Update favorite status
         mangaFavoriteRelay.observeOn(AndroidSchedulers.mainThread())
-                .subscribe { setFavorite(it) }
-                .apply { add(this) }
+            .subscribe { setFavorite(it) }
+            .apply { add(this) }
 
         // update last update date
         lastUpdateRelay.observeOn(AndroidSchedulers.mainThread())
-                .subscribeLatestCache(MangaInfoController::setLastUpdateDate)
+            .subscribeLatestCache(MangaInfoController::setLastUpdateDate)
     }
 
     /**
@@ -70,7 +70,7 @@ class MangaInfoPresenter(
     fun sendMangaToView() {
         viewMangaSubscription?.let { remove(it) }
         viewMangaSubscription = Observable.just(manga)
-                .subscribeLatestCache({ view, manga -> view.onNextManga(manga, source) })
+            .subscribeLatestCache({ view, manga -> view.onNextManga(manga, source) })
     }
 
     /**
@@ -79,18 +79,21 @@ class MangaInfoPresenter(
     fun fetchMangaFromSource() {
         if (!fetchMangaSubscription.isNullOrUnsubscribed()) return
         fetchMangaSubscription = Observable.defer { source.fetchMangaDetails(manga) }
-                .map { networkManga ->
-                    manga.copyFrom(networkManga)
-                    manga.initialized = true
-                    db.insertManga(manga).executeAsBlocking()
-                    manga
-                }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnNext { sendMangaToView() }
-                .subscribeFirst({ view, _ ->
+            .map { networkManga ->
+                manga.copyFrom(networkManga)
+                manga.initialized = true
+                db.insertManga(manga).executeAsBlocking()
+                manga
+            }
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnNext { sendMangaToView() }
+            .subscribeFirst(
+                { view, _ ->
                     view.onFetchMangaDone()
-                }, MangaInfoController::onFetchMangaError)
+                },
+                MangaInfoController::onFetchMangaError
+            )
     }
 
     /**

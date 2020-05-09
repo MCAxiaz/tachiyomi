@@ -6,9 +6,9 @@ import com.hippo.unifile.UniFile
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
-import eu.kanade.tachiyomi.data.preference.getOrDefault
 import eu.kanade.tachiyomi.source.SourceManager
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.flow.onEach
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -47,19 +47,18 @@ class DownloadCache(
     private var rootDir = RootDirectory(getDirectoryFromPreference())
 
     init {
-        preferences.downloadsDirectory().asObservable()
-                .skip(1)
-                .subscribe {
-                    lastRenew = 0L // invalidate cache
-                    rootDir = RootDirectory(getDirectoryFromPreference())
-                }
+        preferences.downloadsDirectory().asFlow()
+            .onEach {
+                lastRenew = 0L // invalidate cache
+                rootDir = RootDirectory(getDirectoryFromPreference())
+            }
     }
 
     /**
      * Returns the downloads directory from the user's preferences.
      */
     private fun getDirectoryFromPreference(): UniFile {
-        val dir = preferences.downloadsDirectory().getOrDefault()
+        val dir = preferences.downloadsDirectory().get()
         return UniFile.fromUri(context, Uri.parse(dir))
     }
 
@@ -101,8 +100,8 @@ class DownloadCache(
             val mangaDir = sourceDir.files[provider.getMangaDirName(manga)]
             if (mangaDir != null) {
                 return mangaDir.files
-                        .filter { !it.endsWith(Downloader.TMP_DIR_SUFFIX) }
-                        .size
+                    .filter { !it.endsWith(Downloader.TMP_DIR_SUFFIX) }
+                    .size
             }
         }
         return 0
@@ -126,26 +125,26 @@ class DownloadCache(
         val onlineSources = sourceManager.getOnlineSources()
 
         val sourceDirs = rootDir.dir.listFiles()
-                .orEmpty()
-                .associate { it.name to SourceDirectory(it) }
-                .mapNotNullKeys { entry ->
-                    onlineSources.find { provider.getSourceDirName(it) == entry.key }?.id
-                }
+            .orEmpty()
+            .associate { it.name to SourceDirectory(it) }
+            .mapNotNullKeys { entry ->
+                onlineSources.find { provider.getSourceDirName(it) == entry.key }?.id
+            }
 
         rootDir.files = sourceDirs
 
         sourceDirs.values.forEach { sourceDir ->
             val mangaDirs = sourceDir.dir.listFiles()
-                    .orEmpty()
-                    .associateNotNullKeys { it.name to MangaDirectory(it) }
+                .orEmpty()
+                .associateNotNullKeys { it.name to MangaDirectory(it) }
 
             sourceDir.files = mangaDirs
 
             mangaDirs.values.forEach { mangaDir ->
                 val chapterDirs = mangaDir.dir.listFiles()
-                        .orEmpty()
-                        .mapNotNull { it.name }
-                        .toHashSet()
+                    .orEmpty()
+                    .mapNotNull { it.name }
+                    .toHashSet()
 
                 mangaDir.files = chapterDirs
             }
@@ -259,7 +258,7 @@ class DownloadCache(
      */
     private inline fun <K, V, R> Map<out K, V>.mapNotNullKeys(transform: (Map.Entry<K?, V>) -> R?): Map<R, V> {
         val destination = LinkedHashMap<R, V>()
-        forEach { element -> transform(element)?.let { destination.put(it, element.value) } }
+        forEach { element -> transform(element)?.let { destination[it] = element.value } }
         return destination
     }
 

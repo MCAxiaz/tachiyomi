@@ -1,15 +1,20 @@
 package eu.kanade.tachiyomi.ui.base.activity
 
 import android.os.Bundle
+import androidx.lifecycle.lifecycleScope
+import androidx.viewbinding.ViewBinding
 import eu.kanade.tachiyomi.ui.base.presenter.BasePresenter
 import eu.kanade.tachiyomi.ui.security.SecureActivityDelegate
 import eu.kanade.tachiyomi.util.system.LocaleHelper
 import nucleus.view.NucleusAppCompatActivity
 
-abstract class BaseRxActivity<P : BasePresenter<*>> : NucleusAppCompatActivity<P>() {
+abstract class BaseRxActivity<VB : ViewBinding, P : BasePresenter<*>> : NucleusAppCompatActivity<P>() {
 
     @Suppress("LeakingThis")
     private val secureActivityDelegate = SecureActivityDelegate(this)
+
+    val scope = lifecycleScope
+    lateinit var binding: VB
 
     init {
         @Suppress("LeakingThis")
@@ -26,11 +31,5 @@ abstract class BaseRxActivity<P : BasePresenter<*>> : NucleusAppCompatActivity<P
         super.onResume()
 
         secureActivityDelegate.onResume()
-    }
-
-    override fun onDestroy() {
-        secureActivityDelegate.onDestroy()
-
-        super.onDestroy()
     }
 }

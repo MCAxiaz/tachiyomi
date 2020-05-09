@@ -13,8 +13,12 @@ import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.databinding.DownloadControllerBinding
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.ui.base.controller.NucleusController
+import eu.kanade.tachiyomi.ui.main.offsetFabAppbarHeight
 import java.util.HashMap
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import reactivecircus.flowbinding.android.view.clicks
 import rx.Observable
 import rx.Subscription
 import rx.android.schedulers.AndroidSchedulers
@@ -23,7 +27,8 @@ import rx.android.schedulers.AndroidSchedulers
  * Controller that shows the currently active downloads.
  * Uses R.layout.fragment_download_queue.
  */
-class DownloadController : NucleusController<DownloadPresenter>(),
+class DownloadController :
+    NucleusController<DownloadControllerBinding, DownloadPresenter>(),
     DownloadAdapter.DownloadItemListener {
 
     /**
@@ -40,8 +45,6 @@ class DownloadController : NucleusController<DownloadPresenter>(),
      * Whether the download queue is running or not.
      */
     private var isRunning: Boolean = false
-
-    private lateinit var binding: DownloadControllerBinding
 
     init {
         setHasOptionsMenu(true)
@@ -75,18 +78,35 @@ class DownloadController : NucleusController<DownloadPresenter>(),
         binding.recycler.layoutManager = LinearLayoutManager(view.context)
         binding.recycler.setHasFixedSize(true)
 
+        binding.fab.clicks()
+            .onEach {
+                val context = applicationContext ?: return@onEach
+
+                if (isRunning) {
+                    DownloadService.stop(context)
+                    presenter.pauseDownloads()
+                } else {
+                    DownloadService.start(context)
+                }
+
+                setInformationView()
+            }
+            .launchIn(scope)
+
+        binding.fab.offsetFabAppbarHeight(activity!!)
+
         // Subscribe to changes
         DownloadService.runningRelay
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeUntilDestroy { onQueueStatusChange(it) }
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeUntilDestroy { onQueueStatusChange(it) }
 
         presenter.getDownloadStatusObservable()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeUntilDestroy { onStatusChange(it) }
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeUntilDestroy { onStatusChange(it) }
 
         presenter.getDownloadProgressObservable()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeUntilDestroy { onUpdateDownloadedPages(it) }
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeUntilDestroy { onUpdateDownloadedPages(it) }
     }
 
     override fun onDestroyView(view: View) {
@@ -103,8 +123,6 @@ class DownloadController : NucleusController<DownloadPresenter>(),
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {
-        menu.findItem(R.id.start_queue).isVisible = !isRunning && !presenter.downloadQueue.isEmpty()
-        menu.findItem(R.id.pause_queue).isVisible = isRunning
         menu.findItem(R.id.clear_queue).isVisible = !presenter.downloadQueue.isEmpty()
         menu.findItem(R.id.reorder).isVisible = !presenter.downloadQueue.isEmpty()
     }
@@ -112,11 +130,6 @@ class DownloadController : NucleusController<DownloadPresenter>(),
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val context = applicationContext ?: return false
         when (item.itemId) {
-            R.id.start_queue -> DownloadService.start(context)
-            R.id.pause_queue -> {
-                DownloadService.stop(context)
-                presenter.pauseDownloads()
-            }
             R.id.clear_queue -> {
                 DownloadService.stop(context)
                 presenter.clearQueue()
@@ -125,8 +138,9 @@ class DownloadController : NucleusController<DownloadPresenter>(),
                 val adapter = adapter ?: return false
                 val items = adapter.currentItems.sortedBy { it.download.chapter.date_upload }
                     .toMutableList()
-                if (item.itemId == R.id.newest)
+                if (item.itemId == R.id.newest) {
                     items.reverse()
+                }
                 adapter.updateDataSet(items)
                 val downloads = items.mapNotNull { it.download }
                 presenter.reorder(downloads)
@@ -163,22 +177,22 @@ class DownloadController : NucleusController<DownloadPresenter>(),
      */
     private fun observeProgress(download: Download) {
         val subscription = Observable.interval(50, TimeUnit.MILLISECONDS)
-                // Get the sum of percentages for all the pages.
-                .flatMap {
-                    Observable.from(download.pages)
-                            .map(Page::progress)
-                            .reduce { x, y -> x + y }
+            // Get the sum of percentages for all the pages.
+            .flatMap {
+                Observable.from(download.pages)
+                    .map(Page::progress)
+                    .reduce { x, y -> x + y }
+            }
+            // Keep only the latest emission to avoid backpressure.
+            .onBackpressureLatest()
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe { progress ->
+                // Update the view only if the progress has changed.
+                if (download.totalProgress != progress) {
+                    download.totalProgress = progress
+                    onUpdateProgress(download)
                 }
-                // Keep only the latest emission to avoid backpressure.
-                .onBackpressureLatest()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { progress ->
-                    // Update the view only if the progress has changed.
-                    if (download.totalProgress != progress) {
-                        download.totalProgress = progress
-                        onUpdateProgress(download)
-                    }
-                }
+            }
 
         // Avoid leaking subscriptions
         progressSubscriptions.remove(download)?.unsubscribe()
@@ -253,8 +267,18 @@ class DownloadController : NucleusController<DownloadPresenter>(),
     private fun setInformationView() {
         if (presenter.downloadQueue.isEmpty()) {
             binding.emptyView.show(R.string.information_no_downloads)
+            binding.fab.hide()
         } else {
             binding.emptyView.hide()
+            binding.fab.show()
+
+            binding.fab.setImageResource(
+                if (isRunning) {
+                    R.drawable.ic_pause_24dp
+                } else {
+                    R.drawable.ic_play_arrow_24dp
+                }
+            )
         }
     }
 
@@ -278,25 +302,27 @@ class DownloadController : NucleusController<DownloadPresenter>(),
     override fun onMenuItemClick(position: Int, menuItem: MenuItem) {
         when (menuItem.itemId) {
             R.id.move_to_top, R.id.move_to_bottom -> {
+                val download = adapter?.getItem(position) ?: return
                 val items = adapter?.currentItems?.toMutableList() ?: return
-                val item = items[position]
-                items.remove(item)
-                if (menuItem.itemId == R.id.move_to_top)
-                    items.add(0, item)
-                else
-                    items.add(item)
-                adapter?.updateDataSet(items)
-                val downloads = items.mapNotNull { it.download }
+                items.remove(download)
+                if (menuItem.itemId == R.id.move_to_top) {
+                    items.add(0, download)
+                } else {
+                    items.add(download)
+                }
+
+                val adapter = adapter ?: return
+                adapter.updateDataSet(items)
+                val downloads = adapter.currentItems.mapNotNull { it?.download }
                 presenter.reorder(downloads)
             }
             R.id.cancel_download -> {
                 val download = adapter?.getItem(position)?.download ?: return
                 presenter.cancelDownload(download)
 
-                adapter?.removeItem(position)
                 val adapter = adapter ?: return
-                val downloads =
-                    (0 until adapter.itemCount).mapNotNull { adapter.getItem(it)?.download }
+                adapter.removeItem(position)
+                val downloads = adapter.currentItems.mapNotNull { it?.download }
                 presenter.reorder(downloads)
             }
         }

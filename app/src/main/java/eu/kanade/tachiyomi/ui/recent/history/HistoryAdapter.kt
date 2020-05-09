@@ -20,16 +20,17 @@ class HistoryAdapter(controller: HistoryController) :
     val sourceManager by injectLazy<SourceManager>()
 
     val resumeClickListener: OnResumeClickListener = controller
-
     val removeClickListener: OnRemoveClickListener = controller
-
-    val coverClickListener: OnCoverClickListener = controller
+    val itemClickListener: OnItemClickListener = controller
 
     /**
      * DecimalFormat used to display correct chapter number
      */
-    val decimalFormat = DecimalFormat("#.###", DecimalFormatSymbols()
-            .apply { decimalSeparator = '.' })
+    val decimalFormat = DecimalFormat(
+        "#.###",
+        DecimalFormatSymbols()
+            .apply { decimalSeparator = '.' }
+    )
 
     init {
         setDisplayHeadersAtStartUp(true)
@@ -44,7 +45,7 @@ class HistoryAdapter(controller: HistoryController) :
         fun onRemoveClick(position: Int)
     }
 
-    interface OnCoverClickListener {
-        fun onCoverClick(position: Int)
+    interface OnItemClickListener {
+        fun onItemClick(position: Int)
     }
 }

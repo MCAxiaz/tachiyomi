@@ -33,14 +33,15 @@ internal class UpdaterNotifier(private val context: Context) {
      *
      * @param title tile of notification.
      */
-    fun onDownloadStarted(title: String) {
+    fun onDownloadStarted(title: String? = null): NotificationCompat.Builder {
         with(notificationBuilder) {
-            setContentTitle(title)
+            title?.let { setContentTitle(title) }
             setContentText(context.getString(R.string.update_check_notification_download_in_progress))
             setSmallIcon(android.R.drawable.stat_sys_download)
             setOngoing(true)
         }
         notificationBuilder.show()
+        return notificationBuilder
     }
 
     /**
@@ -69,13 +70,17 @@ internal class UpdaterNotifier(private val context: Context) {
             setProgress(0, 0, false)
             // Install action
             setContentIntent(NotificationHandler.installApkPendingActivity(context, uri))
-            addAction(R.drawable.ic_system_update_alt_white_24dp,
-                    context.getString(R.string.action_install),
-                    NotificationHandler.installApkPendingActivity(context, uri))
+            addAction(
+                R.drawable.ic_system_update_alt_white_24dp,
+                context.getString(R.string.action_install),
+                NotificationHandler.installApkPendingActivity(context, uri)
+            )
             // Cancel action
-            addAction(R.drawable.ic_close_24dp,
-                    context.getString(R.string.action_cancel),
-                    NotificationReceiver.dismissNotificationPendingBroadcast(context, Notifications.ID_UPDATER))
+            addAction(
+                R.drawable.ic_close_24dp,
+                context.getString(R.string.action_cancel),
+                NotificationReceiver.dismissNotificationPendingBroadcast(context, Notifications.ID_UPDATER)
+            )
         }
         notificationBuilder.show()
     }
@@ -92,13 +97,17 @@ internal class UpdaterNotifier(private val context: Context) {
             setOnlyAlertOnce(false)
             setProgress(0, 0, false)
             // Retry action
-            addAction(R.drawable.ic_refresh_24dp,
-                    context.getString(R.string.action_retry),
-                    UpdaterService.downloadApkPendingService(context, url))
+            addAction(
+                R.drawable.ic_refresh_24dp,
+                context.getString(R.string.action_retry),
+                UpdaterService.downloadApkPendingService(context, url)
+            )
             // Cancel action
-            addAction(R.drawable.ic_close_24dp,
-                    context.getString(R.string.action_cancel),
-                    NotificationReceiver.dismissNotificationPendingBroadcast(context, Notifications.ID_UPDATER))
+            addAction(
+                R.drawable.ic_close_24dp,
+                context.getString(R.string.action_cancel),
+                NotificationReceiver.dismissNotificationPendingBroadcast(context, Notifications.ID_UPDATER)
+            )
         }
         notificationBuilder.show(Notifications.ID_UPDATER)
     }
