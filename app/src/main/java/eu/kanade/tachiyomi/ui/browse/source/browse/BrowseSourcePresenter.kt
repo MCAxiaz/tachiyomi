@@ -322,7 +322,7 @@ open class BrowseSourcePresenter(
                             is Filter.Text -> TextSectionItem(it)
                             is Filter.Select<*> -> SelectSectionItem(it)
                             else -> null
-                        }
+                        } as? ISectionable<*, *>
                     }
                     subItems.forEach { it.header = group }
                     group.subItems = subItems
