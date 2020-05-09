@@ -4,22 +4,19 @@ package eu.kanade.tachiyomi.util.view
 
 import android.graphics.Color
 import android.graphics.Point
-import android.graphics.Typeface
 import android.view.Gravity
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.MenuRes
 import androidx.appcompat.widget.PopupMenu
 import androidx.recyclerview.widget.RecyclerView
-import com.amulyakhare.textdrawable.TextDrawable
-import com.amulyakhare.textdrawable.util.ColorGenerator
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import eu.kanade.tachiyomi.R
-import kotlin.math.min
 
 /**
  * Returns coordinates of view.
@@ -80,21 +77,8 @@ inline fun View.visibleIf(block: () -> Boolean) {
     visibility = if (block()) View.VISIBLE else View.GONE
 }
 
-/**
- * Sets a round TextDrawable into an ImageView determined by input.
- *
- * @param text text of [TextDrawable]
- */
-fun ImageView.roundTextIcon(text: String) {
-    val letter = text.take(1).toUpperCase()
-    val size = min(this.width, this.height)
-
-    setImageDrawable(
-        TextDrawable.builder().beginConfig().width(size).height(size).textColor(Color.WHITE)
-            .useFont(Typeface.DEFAULT).endConfig().buildRound(
-                letter, ColorGenerator.MATERIAL.getColor(letter)
-            )
-    )
+inline fun View.toggle() {
+    visibleIf { visibility == View.GONE }
 }
 
 /**
@@ -105,10 +89,30 @@ fun ImageView.roundTextIcon(text: String) {
 fun ExtendedFloatingActionButton.shrinkOnScroll(recycler: RecyclerView) {
     recycler.addOnScrollListener(object : RecyclerView.OnScrollListener() {
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-            if (dy <= 0)
+            if (dy <= 0) {
                 extend()
-            else
+            } else {
                 shrink()
+            }
         }
     })
+}
+
+/**
+ * Replaces chips in a ChipGroup.
+ *
+ * @param items List of strings that are shown as individual chips.
+ * @param onClick Optional on click listener for each chip.
+ */
+fun ChipGroup.setChips(items: List<String>?, onClick: (item: String) -> Unit = {}) {
+    removeAllViews()
+
+    items?.forEach { item ->
+        val chip = Chip(context).apply {
+            text = item
+            setOnClickListener { onClick(item) }
+        }
+
+        addView(chip)
+    }
 }

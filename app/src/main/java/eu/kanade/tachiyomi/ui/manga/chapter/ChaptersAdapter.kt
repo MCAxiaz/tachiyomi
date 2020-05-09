@@ -20,14 +20,16 @@ class ChaptersAdapter(
 
     var items: List<ChapterItem> = emptyList()
 
-    val readColor = context.getResourceColor(android.R.attr.textColorHint)
-
-    val unreadColor = context.getResourceColor(android.R.attr.textColorPrimary)
+    val readColor = context.getResourceColor(R.attr.colorOnSurface, 0.38f)
+    val unreadColor = context.getResourceColor(R.attr.colorOnSurface)
 
     val bookmarkedColor = context.getResourceColor(R.attr.colorAccent)
 
-    val decimalFormat = DecimalFormat("#.###", DecimalFormatSymbols()
-            .apply { decimalSeparator = '.' })
+    val decimalFormat = DecimalFormat(
+        "#.###",
+        DecimalFormatSymbols()
+            .apply { decimalSeparator = '.' }
+    )
 
     val dateFormat: DateFormat = preferences.dateFormat().getOrDefault()
 

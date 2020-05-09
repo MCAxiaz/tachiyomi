@@ -54,7 +54,7 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
             response.close()
             networkHelper.cookieManager.remove(originalRequest.url, COOKIE_NAMES, 0)
             val oldCookie = networkHelper.cookieManager.get(originalRequest.url)
-                    .firstOrNull { it.name == "cf_clearance" }
+                .firstOrNull { it.name == "cf_clearance" }
             resolveWithWebView(originalRequest, oldCookie)
 
             return chain.proceed(originalRequest)
@@ -75,7 +75,7 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
 
         var challengeFound = false
         var cloudflareBypassed = false
-        var isWebviewOutdated = false
+        var isWebViewOutdated = false
 
         val origRequestUrl = request.url.toString()
         val headers = request.headers.toMultimap().mapValues { it.value.getOrNull(0) ?: "" }
@@ -87,14 +87,14 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
 
             // Avoid set empty User-Agent, Chromium WebView will reset to default if empty
             webview.settings.userAgentString = request.header("User-Agent")
-                    ?: HttpSource.DEFAULT_USERAGENT
+                ?: HttpSource.DEFAULT_USERAGENT
 
             webview.webViewClient = object : WebViewClientCompat() {
                 override fun onPageFinished(view: WebView, url: String) {
                     fun isCloudFlareBypassed(): Boolean {
                         return networkHelper.cookieManager.get(origRequestUrl.toHttpUrl())
-                                .firstOrNull { it.name == "cf_clearance" }
-                                .let { it != null && it != oldCookie }
+                            .firstOrNull { it.name == "cf_clearance" }
+                            .let { it != null && it != oldCookie }
                     }
 
                     if (isCloudFlareBypassed()) {
@@ -139,7 +139,7 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
 
         handler.post {
             if (!cloudflareBypassed) {
-                isWebviewOutdated = webView?.isOutdated() == true
+                isWebViewOutdated = webView?.isOutdated() == true
             }
 
             webView?.stopLoading()
@@ -149,7 +149,7 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
         // Throw exception if we failed to bypass Cloudflare
         if (!cloudflareBypassed) {
             // Prompt user to update WebView if it seems too outdated
-            if (isWebviewOutdated) {
+            if (isWebViewOutdated) {
                 context.toast(R.string.information_webview_outdated, Toast.LENGTH_LONG)
             }
 

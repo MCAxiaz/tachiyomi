@@ -16,9 +16,9 @@ import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.util.lang.plusAssign
+import eu.kanade.tachiyomi.util.system.acquireWakeLock
 import eu.kanade.tachiyomi.util.system.connectivityManager
 import eu.kanade.tachiyomi.util.system.notification
-import eu.kanade.tachiyomi.util.system.powerManager
 import eu.kanade.tachiyomi.util.system.toast
 import rx.android.schedulers.AndroidSchedulers
 import rx.schedulers.Schedulers
@@ -70,9 +70,7 @@ class DownloadService : Service() {
     /**
      * Wake lock to prevent the device to enter sleep mode.
      */
-    private val wakeLock by lazy {
-        powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "DownloadService:WakeLock")
-    }
+    private lateinit var wakeLock: PowerManager.WakeLock
 
     /**
      * Subscriptions to store while the service is running.
@@ -85,6 +83,7 @@ class DownloadService : Service() {
     override fun onCreate() {
         super.onCreate()
         startForeground(Notifications.ID_DOWNLOAD_CHAPTER, getPlaceholderNotification())
+        wakeLock = acquireWakeLock(javaClass.name)
         runningRelay.call(true)
         subscriptions = CompositeSubscription()
         listenDownloaderState()
@@ -106,7 +105,7 @@ class DownloadService : Service() {
      * Not used.
      */
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        return Service.START_NOT_STICKY
+        return START_NOT_STICKY
     }
 
     /**
@@ -123,14 +122,17 @@ class DownloadService : Service() {
      */
     private fun listenNetworkChanges() {
         subscriptions += ReactiveNetwork.observeNetworkConnectivity(applicationContext)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ state ->
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                { state ->
                     onNetworkStateChanged(state)
-                }, {
+                },
+                {
                     toast(R.string.download_queue_error)
                     stopSelf()
-                })
+                }
+            )
     }
 
     /**
@@ -162,10 +164,11 @@ class DownloadService : Service() {
      */
     private fun listenDownloaderState() {
         subscriptions += downloadManager.runningRelay.subscribe { running ->
-            if (running)
+            if (running) {
                 wakeLock.acquireIfNeeded()
-            else
+            } else {
                 wakeLock.releaseIfNeeded()
+            }
         }
     }
 

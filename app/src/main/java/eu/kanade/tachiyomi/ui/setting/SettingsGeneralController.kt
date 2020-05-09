@@ -7,7 +7,7 @@ import androidx.preference.PreferenceScreen
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.preference.PreferenceKeys as Keys
 import eu.kanade.tachiyomi.data.preference.PreferenceValues as Values
-import eu.kanade.tachiyomi.data.preference.getOrDefault
+import eu.kanade.tachiyomi.data.preference.asImmediateFlow
 import eu.kanade.tachiyomi.util.preference.defaultValue
 import eu.kanade.tachiyomi.util.preference.entriesRes
 import eu.kanade.tachiyomi.util.preference.intListPreference
@@ -16,8 +16,10 @@ import eu.kanade.tachiyomi.util.preference.onChange
 import eu.kanade.tachiyomi.util.preference.onClick
 import eu.kanade.tachiyomi.util.preference.preference
 import eu.kanade.tachiyomi.util.preference.preferenceCategory
+import eu.kanade.tachiyomi.util.preference.switchPreference
 import eu.kanade.tachiyomi.util.preference.titleRes
 import eu.kanade.tachiyomi.util.system.LocaleHelper
+import kotlinx.coroutines.flow.launchIn
 
 class SettingsGeneralController : SettingsController() {
 
@@ -28,12 +30,18 @@ class SettingsGeneralController : SettingsController() {
             key = Keys.startScreen
             titleRes = R.string.pref_start_screen
             entriesRes = arrayOf(
-                    R.string.label_library,
-                    R.string.label_recent_updates,
-                    R.string.label_recent_manga)
+                R.string.label_library,
+                R.string.label_recent_updates,
+                R.string.label_recent_manga
+            )
             entryValues = arrayOf("1", "3", "2")
             defaultValue = "1"
             summary = "%s"
+        }
+        switchPreference {
+            key = Keys.confirmExit
+            titleRes = R.string.pref_confirm_exit
+            defaultValue = false
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             preference {
@@ -55,15 +63,14 @@ class SettingsGeneralController : SettingsController() {
                 titleRes = R.string.pref_language
 
                 val langs = mutableListOf<Pair<String, String>>()
-                langs += Pair("", context.getString(R.string.system_default))
+                langs += Pair("", "${context.getString(R.string.system_default)} (${LocaleHelper.getDisplayName("")})")
                 langs += arrayOf(
                     "ar", "bg", "bn", "ca", "cs", "de", "el", "en-US", "en-GB", "es", "fr", "he",
                     "hi", "hu", "in", "it", "ja", "ko", "lv", "ms", "nb-rNO", "nl", "pl", "pt",
                     "pt-BR", "ro", "ru", "sc", "sr", "sv", "th", "tl", "tr", "uk", "vi", "zh-rCN"
                 )
                     .map {
-                        val locale = LocaleHelper.getLocaleFromString(it)
-                        Pair(it, locale!!.getDisplayName(locale).capitalize())
+                        Pair(it, LocaleHelper.getDisplayName(it))
                     }
                     .sortedBy { it.second }
 
@@ -101,21 +108,25 @@ class SettingsGeneralController : SettingsController() {
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     entriesRes = arrayOf(
-                            R.string.theme_system,
-                            R.string.theme_light,
-                            R.string.theme_dark)
+                        R.string.theme_system,
+                        R.string.theme_light,
+                        R.string.theme_dark
+                    )
                     entryValues = arrayOf(
-                            Values.THEME_MODE_SYSTEM,
-                            Values.THEME_MODE_LIGHT,
-                            Values.THEME_MODE_DARK)
+                        Values.THEME_MODE_SYSTEM,
+                        Values.THEME_MODE_LIGHT,
+                        Values.THEME_MODE_DARK
+                    )
                     defaultValue = Values.THEME_MODE_SYSTEM
                 } else {
                     entriesRes = arrayOf(
-                            R.string.theme_light,
-                            R.string.theme_dark)
+                        R.string.theme_light,
+                        R.string.theme_dark
+                    )
                     entryValues = arrayOf(
-                            Values.THEME_MODE_LIGHT,
-                            Values.THEME_MODE_DARK)
+                        Values.THEME_MODE_LIGHT,
+                        Values.THEME_MODE_DARK
+                    )
                     defaultValue = Values.THEME_MODE_LIGHT
                 }
 
@@ -130,19 +141,21 @@ class SettingsGeneralController : SettingsController() {
                 key = Keys.themeLight
                 titleRes = R.string.pref_theme_light
                 entriesRes = arrayOf(
-                        R.string.theme_light_default,
-                        R.string.theme_light_blue)
+                    R.string.theme_light_default,
+                    R.string.theme_light_blue
+                )
                 entryValues = arrayOf(
-                        Values.THEME_LIGHT_DEFAULT,
-                        Values.THEME_LIGHT_BLUE)
+                    Values.THEME_LIGHT_DEFAULT,
+                    Values.THEME_LIGHT_BLUE
+                )
                 defaultValue = Values.THEME_LIGHT_DEFAULT
                 summary = "%s"
 
-                preferences.themeMode().asObservable()
-                        .subscribeUntilDestroy { isVisible = it != Values.THEME_MODE_DARK }
+                preferences.themeMode().asImmediateFlow { isVisible = it != Values.THEME_MODE_DARK }
+                    .launchIn(scope)
 
                 onChange {
-                    if (preferences.themeMode().getOrDefault() != Values.THEME_MODE_DARK) {
+                    if (preferences.themeMode().get() != Values.THEME_MODE_DARK) {
                         activity?.recreate()
                     }
                     true
@@ -152,21 +165,23 @@ class SettingsGeneralController : SettingsController() {
                 key = Keys.themeDark
                 titleRes = R.string.pref_theme_dark
                 entriesRes = arrayOf(
-                        R.string.theme_dark_default,
-                        R.string.theme_dark_blue,
-                        R.string.theme_dark_amoled)
+                    R.string.theme_dark_default,
+                    R.string.theme_dark_blue,
+                    R.string.theme_dark_amoled
+                )
                 entryValues = arrayOf(
-                        Values.THEME_DARK_DEFAULT,
-                        Values.THEME_DARK_BLUE,
-                        Values.THEME_DARK_AMOLED)
+                    Values.THEME_DARK_DEFAULT,
+                    Values.THEME_DARK_BLUE,
+                    Values.THEME_DARK_AMOLED
+                )
                 defaultValue = Values.THEME_DARK_DEFAULT
                 summary = "%s"
 
-                preferences.themeMode().asObservable()
-                        .subscribeUntilDestroy { isVisible = it != Values.THEME_MODE_LIGHT }
+                preferences.themeMode().asImmediateFlow { isVisible = it != Values.THEME_MODE_LIGHT }
+                    .launchIn(scope)
 
                 onChange {
-                    if (preferences.themeMode().getOrDefault() != Values.THEME_MODE_LIGHT) {
+                    if (preferences.themeMode().get() != Values.THEME_MODE_LIGHT) {
                         activity?.recreate()
                     }
                     true

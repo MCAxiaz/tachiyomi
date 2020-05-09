@@ -46,10 +46,12 @@ class ChapterCache(private val context: Context) {
     private val gson: Gson by injectLazy()
 
     /** Cache class used for cache management.  */
-    private val diskCache = DiskLruCache.open(File(context.cacheDir, PARAMETER_CACHE_DIRECTORY),
-            PARAMETER_APP_VERSION,
-            PARAMETER_VALUE_COUNT,
-            PARAMETER_CACHE_SIZE)
+    private val diskCache = DiskLruCache.open(
+        File(context.cacheDir, PARAMETER_CACHE_DIRECTORY),
+        PARAMETER_APP_VERSION,
+        PARAMETER_VALUE_COUNT,
+        PARAMETER_CACHE_SIZE
+    )
 
     /**
      * Returns directory of cache.
@@ -77,16 +79,17 @@ class ChapterCache(private val context: Context) {
      */
     fun removeFileFromCache(file: String): Boolean {
         // Make sure we don't delete the journal file (keeps track of cache).
-        if (file == "journal" || file.startsWith("journal."))
+        if (file == "journal" || file.startsWith("journal.")) {
             return false
+        }
 
-        try {
+        return try {
             // Remove the extension from the file to get the key of the cache
             val key = file.substringBeforeLast(".")
             // Remove file from cache.
-            return diskCache.remove(key)
+            diskCache.remove(key)
         } catch (e: Exception) {
-            return false
+            false
         }
     }
 
@@ -149,10 +152,10 @@ class ChapterCache(private val context: Context) {
      * @return true if in cache otherwise false.
      */
     fun isImageInCache(imageUrl: String): Boolean {
-        try {
-            return diskCache.get(DiskUtil.hashKeyForDisk(imageUrl)) != null
+        return try {
+            diskCache.get(DiskUtil.hashKeyForDisk(imageUrl)) != null
         } catch (e: IOException) {
-            return false
+            false
         }
     }
 

@@ -3,23 +3,24 @@ package eu.kanade.tachiyomi.ui.migration
 import android.app.Dialog
 import android.os.Bundle
 import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.list.listItemsMultiChoice
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
-import eu.kanade.tachiyomi.data.preference.getOrDefault
 import eu.kanade.tachiyomi.ui.base.controller.DialogController
-import eu.kanade.tachiyomi.ui.base.controller.popControllerWithTag
-import eu.kanade.tachiyomi.ui.catalogue.global_search.CatalogueSearchController
-import eu.kanade.tachiyomi.ui.catalogue.global_search.CatalogueSearchPresenter
+import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchController
+import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchPresenter
+import eu.kanade.tachiyomi.util.view.gone
+import eu.kanade.tachiyomi.util.view.visible
 import uy.kohesive.injekt.injectLazy
 
 class SearchController(
     private var manga: Manga? = null
-) : CatalogueSearchController(manga?.title) {
+) : GlobalSearchController(manga?.title) {
 
     private var newManga: Manga? = null
 
-    override fun createPresenter(): CatalogueSearchPresenter {
+    override fun createPresenter(): GlobalSearchPresenter {
         return SearchPresenter(initialQuery, manga!!)
     }
 
@@ -63,11 +64,9 @@ class SearchController(
 
     fun renderIsReplacingManga(isReplacingManga: Boolean) {
         if (isReplacingManga) {
-            if (router.getControllerWithTag(LOADING_DIALOG_TAG) == null) {
-                LoadingController().showDialog(router, LOADING_DIALOG_TAG)
-            }
+            binding.progress.visible()
         } else {
-            router.popControllerWithTag(LOADING_DIALOG_TAG)
+            binding.progress.gone()
             router.popController(this)
         }
     }
@@ -77,46 +76,27 @@ class SearchController(
         private val preferences: PreferencesHelper by injectLazy()
 
         override fun onCreateDialog(savedViewState: Bundle?): Dialog {
-            val prefValue = preferences.migrateFlags().getOrDefault()
+            val prefValue = preferences.migrateFlags().get()
 
             val preselected = MigrationFlags.getEnabledFlagsPositions(prefValue)
 
-            return MaterialDialog.Builder(activity!!)
-                    .content(R.string.migration_dialog_what_to_include)
-                    .items(MigrationFlags.titles.map { resources?.getString(it) })
-                    .alwaysCallMultiChoiceCallback()
-                    .itemsCallbackMultiChoice(preselected.toTypedArray()) { _, positions, _ ->
-                        // Save current settings for the next time
-                        val newValue = MigrationFlags.getFlagsFromPositions(positions)
-                        preferences.migrateFlags().set(newValue)
-
-                        true
-                    }
-                    .positiveText(R.string.migrate)
-                    .negativeText(R.string.copy)
-                    .neutralText(android.R.string.cancel)
-                    .onPositive { _, _ ->
-                        (targetController as? SearchController)?.migrateManga()
-                    }
-                    .onNegative { _, _ ->
-                        (targetController as? SearchController)?.copyManga()
-                    }
-                    .build()
+            return MaterialDialog(activity!!)
+                .message(R.string.migration_dialog_what_to_include)
+                .listItemsMultiChoice(
+                    items = MigrationFlags.titles.map { resources?.getString(it) as CharSequence },
+                    initialSelection = preselected.toIntArray()
+                ) { _, positions, _ ->
+                    // Save current settings for the next time
+                    val newValue = MigrationFlags.getFlagsFromPositions(positions.toTypedArray())
+                    preferences.migrateFlags().set(newValue)
+                }
+                .positiveButton(R.string.migrate) {
+                    (targetController as? SearchController)?.migrateManga()
+                }
+                .negativeButton(R.string.copy) {
+                    (targetController as? SearchController)?.copyManga()
+                }
+                .neutralButton(android.R.string.cancel)
         }
-    }
-
-    class LoadingController : DialogController() {
-
-        override fun onCreateDialog(savedViewState: Bundle?): Dialog {
-            return MaterialDialog.Builder(activity!!)
-                    .progress(true, 0)
-                    .content(R.string.migrating)
-                    .cancelable(false)
-                    .build()
-        }
-    }
-
-    companion object {
-        const val LOADING_DIALOG_TAG = "LoadingDialog"
     }
 }

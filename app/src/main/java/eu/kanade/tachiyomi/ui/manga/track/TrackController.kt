@@ -6,24 +6,26 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.jakewharton.rxbinding.support.v4.widget.refreshes
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import eu.kanade.tachiyomi.databinding.TrackControllerBinding
 import eu.kanade.tachiyomi.ui.base.controller.NucleusController
 import eu.kanade.tachiyomi.ui.manga.MangaController
 import eu.kanade.tachiyomi.util.system.toast
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import reactivecircus.flowbinding.swiperefreshlayout.refreshes
 import timber.log.Timber
 
-class TrackController : NucleusController<TrackPresenter>(),
-        TrackAdapter.OnClickListener,
-        SetTrackStatusDialog.Listener,
-        SetTrackChaptersDialog.Listener,
-        SetTrackScoreDialog.Listener {
+class TrackController :
+    NucleusController<TrackControllerBinding, TrackPresenter>(),
+    TrackAdapter.OnClickListener,
+    SetTrackStatusDialog.Listener,
+    SetTrackChaptersDialog.Listener,
+    SetTrackScoreDialog.Listener,
+    SetTrackReadingDatesDialog.Listener {
 
     private var adapter: TrackAdapter? = null
-
-    private lateinit var binding: TrackControllerBinding
 
     init {
         // There's no menu, but this avoids a bug when coming from the catalogue, where the menu
@@ -47,7 +49,9 @@ class TrackController : NucleusController<TrackPresenter>(),
         binding.trackRecycler.layoutManager = LinearLayoutManager(view.context)
         binding.trackRecycler.adapter = adapter
         binding.swipeRefresh.isEnabled = false
-        binding.swipeRefresh.refreshes().subscribeUntilDestroy { presenter.refresh() }
+        binding.swipeRefresh.refreshes()
+            .onEach { presenter.refresh() }
+            .launchIn(scope)
     }
 
     override fun onDestroyView(view: View) {
@@ -88,7 +92,7 @@ class TrackController : NucleusController<TrackPresenter>(),
     override fun onLogoClick(position: Int) {
         val track = adapter?.getItem(position)?.track ?: return
 
-        if (track.tracking_url.isNullOrBlank()) {
+        if (track.tracking_url.isBlank()) {
             activity?.toast(R.string.url_not_set)
         } else {
             activity?.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(track.tracking_url)))
@@ -121,6 +125,20 @@ class TrackController : NucleusController<TrackPresenter>(),
         SetTrackScoreDialog(this, item).showDialog(router)
     }
 
+    override fun onStartDateClick(position: Int) {
+        val item = adapter?.getItem(position) ?: return
+        if (item.track == null) return
+
+        SetTrackReadingDatesDialog(this, SetTrackReadingDatesDialog.ReadingDate.Start, item).showDialog(router)
+    }
+
+    override fun onFinishDateClick(position: Int) {
+        val item = adapter?.getItem(position) ?: return
+        if (item.track == null) return
+
+        SetTrackReadingDatesDialog(this, SetTrackReadingDatesDialog.ReadingDate.Finish, item).showDialog(router)
+    }
+
     override fun setStatus(item: TrackItem, selection: Int) {
         presenter.setStatus(item, selection)
         binding.swipeRefresh.isRefreshing = true
@@ -133,6 +151,14 @@ class TrackController : NucleusController<TrackPresenter>(),
 
     override fun setChaptersRead(item: TrackItem, chaptersRead: Int) {
         presenter.setLastChapterRead(item, chaptersRead)
+        binding.swipeRefresh.isRefreshing = true
+    }
+
+    override fun setReadingDate(item: TrackItem, type: SetTrackReadingDatesDialog.ReadingDate, date: Long) {
+        when (type) {
+            SetTrackReadingDatesDialog.ReadingDate.Start -> presenter.setStartDate(item, date)
+            SetTrackReadingDatesDialog.ReadingDate.Finish -> presenter.setFinishDate(item, date)
+        }
         binding.swipeRefresh.isRefreshing = true
     }
 

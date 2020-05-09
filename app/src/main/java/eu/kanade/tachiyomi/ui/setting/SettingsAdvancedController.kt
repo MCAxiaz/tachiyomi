@@ -2,14 +2,12 @@ package eu.kanade.tachiyomi.ui.setting
 
 import android.annotation.SuppressLint
 import android.app.Dialog
-import android.content.Context.POWER_SERVICE
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.PowerManager
 import android.provider.Settings
-import android.view.View
 import androidx.preference.PreferenceScreen
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bluelinelabs.conductor.RouterTransaction
@@ -28,6 +26,7 @@ import eu.kanade.tachiyomi.util.preference.preference
 import eu.kanade.tachiyomi.util.preference.summaryRes
 import eu.kanade.tachiyomi.util.preference.switchPreference
 import eu.kanade.tachiyomi.util.preference.titleRes
+import eu.kanade.tachiyomi.util.system.powerManager
 import eu.kanade.tachiyomi.util.system.toast
 import rx.Observable
 import rx.android.schedulers.AndroidSchedulers
@@ -96,13 +95,16 @@ class SettingsAdvancedController : SettingsController() {
 
                 onClick {
                     val packageName: String = context.packageName
-                    val pm = context.getSystemService(POWER_SERVICE) as PowerManager?
-                    if (!pm!!.isIgnoringBatteryOptimizations(packageName)) {
-                        val intent = Intent().apply {
-                            action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
-                            data = Uri.parse("package:$packageName")
+                    if (!context.powerManager.isIgnoringBatteryOptimizations(packageName)) {
+                        try {
+                            val intent = Intent().apply {
+                                action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+                                data = Uri.parse("package:$packageName")
+                            }
+                            startActivity(intent)
+                        } catch (e: ActivityNotFoundException) {
+                            context.toast(R.string.battery_optimization_setting_activity_not_found)
                         }
-                        startActivity(intent)
                     } else {
                         context.toast(R.string.battery_optimization_disabled)
                     }
@@ -117,81 +119,40 @@ class SettingsAdvancedController : SettingsController() {
 
         var deletedFiles = 0
 
-        val ctrl = DeletingFilesDialogController()
-        ctrl.total = files.size
-        ctrl.showDialog(router)
-
         Observable.defer { Observable.from(files) }
-                .doOnNext { file ->
-                    if (chapterCache.removeFileFromCache(file.name)) {
-                        deletedFiles++
-                    }
+            .doOnNext { file ->
+                if (chapterCache.removeFileFromCache(file.name)) {
+                    deletedFiles++
                 }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    ctrl.setProgress(deletedFiles)
-                }, {
-                    activity?.toast(R.string.cache_delete_error)
-                }, {
-                    ctrl.finish()
-                    activity?.toast(resources?.getString(R.string.cache_deleted, deletedFiles))
-                    findPreference(CLEAR_CACHE_KEY)?.summary =
-                            resources?.getString(R.string.used_cache, chapterCache.readableSize)
-                })
-    }
-
-    class DeletingFilesDialogController : DialogController() {
-
-        var total = 0
-
-        private var materialDialog: MaterialDialog? = null
-
-        override fun onCreateDialog(savedViewState: Bundle?): Dialog {
-            return MaterialDialog.Builder(activity!!)
-                    .title(R.string.deleting)
-                    .progress(false, total, true)
-                    .cancelable(false)
-                    .build()
-                    .also { materialDialog = it }
-        }
-
-        override fun onDestroyView(view: View) {
-            super.onDestroyView(view)
-            materialDialog = null
-        }
-
-        override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-            super.onRestoreInstanceState(savedInstanceState)
-            finish()
-        }
-
-        fun setProgress(deletedFiles: Int) {
-            materialDialog?.setProgress(deletedFiles)
-        }
-
-        fun finish() {
-            router.popController(this)
-        }
+            }
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnError {
+                activity?.toast(R.string.cache_delete_error)
+            }
+            .doOnCompleted {
+                activity?.toast(resources?.getString(R.string.cache_deleted, deletedFiles))
+                findPreference(CLEAR_CACHE_KEY)?.summary =
+                    resources?.getString(R.string.used_cache, chapterCache.readableSize)
+            }
+            .subscribe()
     }
 
     class ClearDatabaseDialogController : DialogController() {
         override fun onCreateDialog(savedViewState: Bundle?): Dialog {
-            return MaterialDialog.Builder(activity!!)
-                    .content(R.string.clear_database_confirmation)
-                    .positiveText(android.R.string.ok)
-                    .negativeText(android.R.string.cancel)
-                    .onPositive { _, _ ->
-                        (targetController as? SettingsAdvancedController)?.clearDatabase()
-                    }
-                    .build()
+            return MaterialDialog(activity!!)
+                .message(R.string.clear_database_confirmation)
+                .positiveButton(android.R.string.ok) {
+                    (targetController as? SettingsAdvancedController)?.clearDatabase()
+                }
+                .negativeButton(android.R.string.cancel)
         }
     }
 
     private fun clearDatabase() {
         // Avoid weird behavior by going back to the library.
         val newBackstack = listOf(RouterTransaction.with(LibraryController())) +
-                router.backstack.drop(1)
+            router.backstack.drop(1)
 
         router.setBackstack(newBackstack, FadeChangeHandler())
 

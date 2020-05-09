@@ -40,7 +40,7 @@ class HistoryPresenter(
 
         // Used to get a list of recently read manga
         getRecentMangaObservable()
-                .subscribeLatestCache(HistoryController::onNextManga)
+            .subscribeLatestCache(HistoryController::onNextManga)
     }
 
     /**
@@ -55,16 +55,16 @@ class HistoryPresenter(
         }
 
         return db.getRecentManga(cal.time).asRxObservable()
-                .map { recents ->
-                    val map = TreeMap<Date, MutableList<MangaChapterHistory>> { d1, d2 -> d2.compareTo(d1) }
-                    val byDay = recents
-                            .groupByTo(map, { it.history.last_read.toDateKey() })
-                    byDay.flatMap {
-                        val dateItem = DateSectionItem(it.key)
-                        it.value.map { HistoryItem(it, dateItem) }
-                    }
+            .map { recents ->
+                val map = TreeMap<Date, MutableList<MangaChapterHistory>> { d1, d2 -> d2.compareTo(d1) }
+                val byDay = recents
+                    .groupByTo(map, { it.history.last_read.toDateKey() })
+                byDay.flatMap { entry ->
+                    val dateItem = DateSectionItem(entry.key)
+                    entry.value.map { HistoryItem(it, dateItem) }
                 }
-                .observeOn(AndroidSchedulers.mainThread())
+            }
+            .observeOn(AndroidSchedulers.mainThread())
     }
 
     /**
@@ -74,7 +74,7 @@ class HistoryPresenter(
     fun removeFromHistory(history: History) {
         history.last_read = 0L
         db.updateHistoryLastRead(history).asRxObservable()
-                .subscribe()
+            .subscribe()
     }
 
     /**
@@ -83,11 +83,11 @@ class HistoryPresenter(
      */
     fun removeAllFromHistory(mangaId: Long) {
         db.getHistoryByMangaId(mangaId).asRxSingle()
-                .map { list ->
-                    list.forEach { it.last_read = 0L }
-                    db.updateHistoryLastRead(list).executeAsBlocking()
-                }
-                .subscribe()
+            .map { list ->
+                list.forEach { it.last_read = 0L }
+                db.updateHistoryLastRead(list).executeAsBlocking()
+            }
+            .subscribe()
     }
 
     /**

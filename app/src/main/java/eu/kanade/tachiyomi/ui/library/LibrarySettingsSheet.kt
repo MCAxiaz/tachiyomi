@@ -3,102 +3,79 @@ package eu.kanade.tachiyomi.ui.library
 import android.app.Activity
 import android.content.Context
 import android.util.AttributeSet
-import com.google.android.material.bottomsheet.BottomSheetDialog
+import android.view.View
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
-import eu.kanade.tachiyomi.data.preference.getOrDefault
 import eu.kanade.tachiyomi.widget.ExtendedNavigationView
+import eu.kanade.tachiyomi.widget.TabbedBottomSheetDialog
 import uy.kohesive.injekt.injectLazy
 
 class LibrarySettingsSheet(
-    activity: Activity,
+    private val activity: Activity,
     onGroupClickListener: (ExtendedNavigationView.Group) -> Unit
-) : BottomSheetDialog(activity) {
+) : TabbedBottomSheetDialog(activity) {
 
-    private var navView: Settings
+    val filters: Filter
+    private val sort: Sort
+    private val display: Display
 
     init {
-        navView = Settings(activity)
-        navView.onGroupClicked = onGroupClickListener
+        filters = Filter(activity)
+        filters.onGroupClicked = onGroupClickListener
 
-        setContentView(navView)
+        sort = Sort(activity)
+        sort.onGroupClicked = onGroupClickListener
+
+        display = Display(activity)
+        display.onGroupClicked = onGroupClickListener
     }
 
-    fun hasActiveFilters(): Boolean {
-        return navView.hasActiveFilters()
-    }
+    override fun getTabViews(): List<View> = listOf(
+        filters,
+        sort,
+        display
+    )
+
+    override fun getTabTitles(): List<Int> = listOf(
+        R.string.action_filter,
+        R.string.action_sort,
+        R.string.action_display
+    )
 
     /**
-     * The navigation view shown in the sheet with the different options to show the library.
+     * Filters group (unread, downloaded, ...).
      */
-    class Settings @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) :
-        ExtendedNavigationView(context, attrs) {
+    inner class Filter @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) :
+        Settings(context, attrs) {
 
-        private val preferences: PreferencesHelper by injectLazy()
-
-        /**
-         * List of groups shown in the view.
-         */
-        private val groups = listOf(FilterGroup(), SortGroup(), DisplayGroup(), BadgeGroup())
-
-        /**
-         * Adapter instance.
-         */
-        private val adapter = Adapter(groups.map { it.createItems() }.flatten())
-
-        /**
-         * Click listener to notify the parent fragment when an item from a group is clicked.
-         */
-        var onGroupClicked: (Group) -> Unit = {}
+        private val filterGroup = FilterGroup()
 
         init {
-            recycler.adapter = adapter
-            addView(recycler)
-
-            groups.forEach { it.initModels() }
+            setGroups(listOf(filterGroup))
         }
 
         /**
          * Returns true if there's at least one filter from [FilterGroup] active.
          */
         fun hasActiveFilters(): Boolean {
-            return (groups[0] as FilterGroup).items.any { it.checked }
+            return filterGroup.items.any { it.checked }
         }
 
-        /**
-         * Adapter of the recycler view.
-         */
-        inner class Adapter(items: List<Item>) : ExtendedNavigationView.Adapter(items) {
-
-            override fun onItemClicked(item: Item) {
-                if (item is GroupedItem) {
-                    item.group.onItemClicked(item)
-                    onGroupClicked(item.group)
-                }
-            }
-        }
-
-        /**
-         * Filters group (unread, downloaded, ...).
-         */
         inner class FilterGroup : Group {
 
             private val downloaded = Item.CheckboxGroup(R.string.action_filter_downloaded, this)
-
             private val unread = Item.CheckboxGroup(R.string.action_filter_unread, this)
-
             private val completed = Item.CheckboxGroup(R.string.completed, this)
 
+            override val header = null
             override val items = listOf(downloaded, unread, completed)
-
-            override val header = Item.Header(R.string.action_filter)
-
-            override val footer = Item.Separator()
+            override val footer = null
 
             override fun initModels() {
-                downloaded.checked = preferences.filterDownloaded().getOrDefault()
-                unread.checked = preferences.filterUnread().getOrDefault()
-                completed.checked = preferences.filterCompleted().getOrDefault()
+                downloaded.checked = preferences.downloadedOnly().get() || preferences.filterDownloaded().get()
+                downloaded.enabled = !preferences.downloadedOnly().get()
+                unread.checked = preferences.filterUnread().get()
+                completed.checked = preferences.filterCompleted().get()
             }
 
             override fun onItemClicked(item: Item) {
@@ -113,35 +90,39 @@ class LibrarySettingsSheet(
                 adapter.notifyItemChanged(item)
             }
         }
+    }
 
-        /**
-         * Sorting group (alphabetically, by last read, ...) and ascending or descending.
-         */
+    /**
+     * Sorting group (alphabetically, by last read, ...) and ascending or descending.
+     */
+    inner class Sort @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) :
+        Settings(context, attrs) {
+
+        init {
+            setGroups(listOf(SortGroup()))
+        }
+
         inner class SortGroup : Group {
 
             private val alphabetically = Item.MultiSort(R.string.action_sort_alpha, this)
-
             private val total = Item.MultiSort(R.string.action_sort_total, this)
-
             private val lastRead = Item.MultiSort(R.string.action_sort_last_read, this)
-
             private val lastChecked = Item.MultiSort(R.string.action_sort_last_checked, this)
-
             private val unread = Item.MultiSort(R.string.action_filter_unread, this)
-
             private val latestChapter = Item.MultiSort(R.string.action_sort_latest_chapter, this)
 
+            override val header = null
             override val items =
                 listOf(alphabetically, lastRead, lastChecked, unread, total, latestChapter)
-
-            override val header = Item.Header(R.string.action_sort)
-
-            override val footer = Item.Separator()
+            override val footer = null
 
             override fun initModels() {
-                val sorting = preferences.librarySortingMode().getOrDefault()
-                val order = if (preferences.librarySortingAscending().getOrDefault())
-                    Item.MultiSort.SORT_ASC else Item.MultiSort.SORT_DESC
+                val sorting = preferences.librarySortingMode().get()
+                val order = if (preferences.librarySortingAscending().get()) {
+                    Item.MultiSort.SORT_ASC
+                } else {
+                    Item.MultiSort.SORT_DESC
+                }
 
                 alphabetically.state =
                     if (sorting == LibrarySort.ALPHA) order else Item.MultiSort.SORT_NONE
@@ -187,42 +168,29 @@ class LibrarySettingsSheet(
                 item.group.items.forEach { adapter.notifyItemChanged(it) }
             }
         }
+    }
 
-        inner class BadgeGroup : Group {
-            private val downloadBadge =
-                Item.CheckboxGroup(R.string.action_display_download_badge, this)
-            override val header = null
-            override val footer = null
-            override val items = listOf(downloadBadge)
-            override fun initModels() {
-                downloadBadge.checked = preferences.downloadBadge().getOrDefault()
-            }
+    /**
+     * Display group, to show the library as a list or a grid.
+     */
+    inner class Display @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) :
+        Settings(context, attrs) {
 
-            override fun onItemClicked(item: Item) {
-                item as Item.CheckboxGroup
-                item.checked = !item.checked
-                preferences.downloadBadge().set((item.checked))
-                adapter.notifyItemChanged(item)
-            }
+        init {
+            setGroups(listOf(DisplayGroup(), BadgeGroup()))
         }
 
-        /**
-         * Display group, to show the library as a list or a grid.
-         */
         inner class DisplayGroup : Group {
 
             private val grid = Item.Radio(R.string.action_display_grid, this)
-
             private val list = Item.Radio(R.string.action_display_list, this)
 
+            override val header = null
             override val items = listOf(grid, list)
-
-            override val header = Item.Header(R.string.action_display)
-
             override val footer = null
 
             override fun initModels() {
-                val asList = preferences.libraryAsList().getOrDefault()
+                val asList = preferences.libraryAsList().get()
                 grid.checked = !asList
                 list.checked = asList
             }
@@ -237,6 +205,63 @@ class LibrarySettingsSheet(
                 preferences.libraryAsList().set(item == list)
 
                 item.group.items.forEach { adapter.notifyItemChanged(it) }
+            }
+        }
+
+        inner class BadgeGroup : Group {
+            private val downloadBadge = Item.CheckboxGroup(R.string.action_display_download_badge, this)
+            private val unreadBadge = Item.CheckboxGroup(R.string.action_display_unread_badge, this)
+
+            override val header = null
+            override val items = listOf(downloadBadge, unreadBadge)
+            override val footer = null
+
+            override fun initModels() {
+                downloadBadge.checked = preferences.downloadBadge().get()
+                unreadBadge.checked = preferences.unreadBadge().get()
+            }
+
+            override fun onItemClicked(item: Item) {
+                item as Item.CheckboxGroup
+                item.checked = !item.checked
+                when (item) {
+                    downloadBadge -> preferences.downloadBadge().set((item.checked))
+                    unreadBadge -> preferences.unreadBadge().set((item.checked))
+                }
+                adapter.notifyItemChanged(item)
+            }
+        }
+    }
+
+    open inner class Settings(context: Context, attrs: AttributeSet?) :
+        ExtendedNavigationView(context, attrs) {
+
+        val preferences: PreferencesHelper by injectLazy()
+        lateinit var adapter: Adapter
+
+        /**
+         * Click listener to notify the parent fragment when an item from a group is clicked.
+         */
+        var onGroupClicked: (Group) -> Unit = {}
+
+        fun setGroups(groups: List<Group>) {
+            adapter = Adapter(groups.map { it.createItems() }.flatten())
+            recycler.adapter = adapter
+
+            groups.forEach { it.initModels() }
+            addView(recycler)
+        }
+
+        /**
+         * Adapter of the recycler view.
+         */
+        inner class Adapter(items: List<Item>) : ExtendedNavigationView.Adapter(items) {
+
+            override fun onItemClicked(item: Item) {
+                if (item is GroupedItem) {
+                    item.group.onItemClicked(item)
+                    onGroupClicked(item.group)
+                }
             }
         }
     }

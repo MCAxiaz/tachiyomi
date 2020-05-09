@@ -12,9 +12,9 @@ object ChapterLoadBySource {
 
     fun getNextChapter(allChapters: List<Chapter>, selectedChapter: Chapter): Chapter? {
         val nextSourceOrder = selectedChapter.source_order - 1
-        return if (nextSourceOrder >= 0)
+        return if (nextSourceOrder >= 0) {
             allChapters.find { it.source_order == nextSourceOrder }
-        else null
+        } else null
     }
 }
 
@@ -32,7 +32,8 @@ object ChapterLoadByNumber {
                 // Make sure the selected chapter is always present
                 selectedChapter.chapter_number -> selectedChapter
                 // Prefer a chapter of the same scanlator as the selected
-                else -> chapters.find { it.scanlator == selectedChapter.scanlator }
+                else ->
+                    chapters.find { it.scanlator == selectedChapter.scanlator }
                         ?: chapters.first()
             }
         }.sortedBy { it.chapter_number }

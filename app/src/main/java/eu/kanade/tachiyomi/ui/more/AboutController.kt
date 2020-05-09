@@ -3,30 +3,28 @@ package eu.kanade.tachiyomi.ui.more
 import android.app.Dialog
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import androidx.preference.PreferenceScreen
 import com.afollestad.materialdialogs.MaterialDialog
+import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
 import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.data.preference.PreferenceKeys as Keys
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.data.preference.getOrDefault
 import eu.kanade.tachiyomi.data.updater.UpdateChecker
 import eu.kanade.tachiyomi.data.updater.UpdateResult
-import eu.kanade.tachiyomi.data.updater.UpdaterJob
 import eu.kanade.tachiyomi.data.updater.UpdaterService
 import eu.kanade.tachiyomi.ui.base.controller.DialogController
 import eu.kanade.tachiyomi.ui.main.ChangelogDialogController
 import eu.kanade.tachiyomi.ui.setting.SettingsController
 import eu.kanade.tachiyomi.util.lang.launchNow
 import eu.kanade.tachiyomi.util.lang.toDateTimestampString
-import eu.kanade.tachiyomi.util.preference.defaultValue
-import eu.kanade.tachiyomi.util.preference.onChange
 import eu.kanade.tachiyomi.util.preference.onClick
 import eu.kanade.tachiyomi.util.preference.preference
-import eu.kanade.tachiyomi.util.preference.summaryRes
-import eu.kanade.tachiyomi.util.preference.switchPreference
+import eu.kanade.tachiyomi.util.preference.preferenceCategory
 import eu.kanade.tachiyomi.util.preference.titleRes
+import eu.kanade.tachiyomi.util.system.copyToClipboard
 import eu.kanade.tachiyomi.util.system.toast
 import java.text.DateFormat
 import java.text.ParseException
@@ -52,61 +50,92 @@ class AboutController : SettingsController() {
     override fun setupPreferenceScreen(screen: PreferenceScreen) = with(screen) {
         titleRes = R.string.pref_category_about
 
-        switchPreference {
-            key = Keys.automaticUpdates
-            titleRes = R.string.pref_enable_automatic_updates
-            summaryRes = R.string.pref_enable_automatic_updates_summary
-            defaultValue = true
-
-            if (isUpdaterEnabled) {
-                onChange { newValue ->
-                    val checked = newValue as Boolean
-                    if (checked) {
-                        UpdaterJob.setupTask(context)
-                    } else {
-                        UpdaterJob.cancelTask(context)
-                    }
-                    true
-                }
-            } else {
-                isVisible = false
-            }
-        }
-        preference {
-            title = "Discord"
-            val url = "https://discord.gg/tachiyomi"
-            summary = url
-            onClick {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                startActivity(intent)
-            }
-        }
-        preference {
-            title = "GitHub"
-            val url = "https://github.com/inorichi/tachiyomi"
-            summary = url
-            onClick {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                startActivity(intent)
-            }
-        }
         preference {
             titleRes = R.string.version
-            summary = if (BuildConfig.DEBUG)
-                "r${BuildConfig.COMMIT_COUNT} (${BuildConfig.COMMIT_SHA})"
-            else
-                BuildConfig.VERSION_NAME
-
-            if (isUpdaterEnabled) {
-                onClick { checkVersion() }
+            summary = if (BuildConfig.DEBUG) {
+                "Preview r${BuildConfig.COMMIT_COUNT} (${BuildConfig.COMMIT_SHA})"
+            } else {
+                "Stable ${BuildConfig.VERSION_NAME}"
             }
+
+            onClick { copyDebugInfo() }
         }
         preference {
             titleRes = R.string.build_time
             summary = getFormattedBuildTime()
+        }
+        if (isUpdaterEnabled) {
+            preference {
+                titleRes = R.string.check_for_updates
+
+                onClick { checkVersion() }
+            }
+        }
+        preference {
+            titleRes = R.string.changelog
 
             onClick {
-                ChangelogDialogController().showDialog(router)
+                if (BuildConfig.DEBUG) {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/inorichi/tachiyomi/commits/dev"))
+                    startActivity(intent)
+                } else {
+                    ChangelogDialogController().showDialog(router)
+                }
+            }
+        }
+        if (BuildConfig.DEBUG) {
+            preference {
+                titleRes = R.string.notices
+
+                onClick {
+                    ChangelogDialogController().showDialog(router)
+                }
+            }
+        }
+
+        preferenceCategory {
+            preference {
+                titleRes = R.string.website
+                val url = "https://tachiyomi.org"
+                summary = url
+                onClick {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                    startActivity(intent)
+                }
+            }
+            preference {
+                title = "Discord"
+                val url = "https://discord.gg/tachiyomi"
+                summary = url
+                onClick {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                    startActivity(intent)
+                }
+            }
+            preference {
+                title = "GitHub"
+                val url = "https://github.com/inorichi/tachiyomi"
+                summary = url
+                onClick {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                    startActivity(intent)
+                }
+            }
+            preference {
+                titleRes = R.string.label_extensions
+                val url = "https://github.com/inorichi/tachiyomi-extensions"
+                summary = url
+                onClick {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                    startActivity(intent)
+                }
+            }
+            preference {
+                titleRes = R.string.licenses
+
+                onClick {
+                    startActivity(Intent(activity, OssLicensesMenuActivity::class.java))
+                }
             }
         }
     }
@@ -142,26 +171,26 @@ class AboutController : SettingsController() {
 
     class NewUpdateDialogController(bundle: Bundle? = null) : DialogController(bundle) {
 
-        constructor(body: String, url: String) : this(Bundle().apply {
-            putString(BODY_KEY, body)
-            putString(URL_KEY, url)
-        })
+        constructor(body: String, url: String) : this(
+            Bundle().apply {
+                putString(BODY_KEY, body)
+                putString(URL_KEY, url)
+            }
+        )
 
         override fun onCreateDialog(savedViewState: Bundle?): Dialog {
-            return MaterialDialog.Builder(activity!!)
-                    .title(R.string.update_check_notification_update_available)
-                    .content(args.getString(BODY_KEY) ?: "")
-                    .positiveText(R.string.update_check_confirm)
-                    .negativeText(R.string.update_check_ignore)
-                    .onPositive { _, _ ->
-                        val appContext = applicationContext
-                        if (appContext != null) {
-                            // Start download
-                            val url = args.getString(URL_KEY) ?: ""
-                            UpdaterService.downloadUpdate(appContext, url)
-                        }
+            return MaterialDialog(activity!!)
+                .title(res = R.string.update_check_notification_update_available)
+                .message(text = args.getString(BODY_KEY) ?: "")
+                .positiveButton(R.string.update_check_confirm) {
+                    val appContext = applicationContext
+                    if (appContext != null) {
+                        // Start download
+                        val url = args.getString(URL_KEY) ?: ""
+                        UpdaterService.start(appContext, url)
                     }
-                    .build()
+                }
+                .negativeButton(R.string.update_check_ignore)
         }
 
         private companion object {
@@ -170,19 +199,36 @@ class AboutController : SettingsController() {
         }
     }
 
+    private fun copyDebugInfo() {
+        val deviceInfo =
+            """
+            App version: ${BuildConfig.VERSION_NAME} (${BuildConfig.FLAVOR}, ${BuildConfig.COMMIT_SHA}, ${BuildConfig.VERSION_CODE})
+            Android version: ${Build.VERSION.RELEASE} (SDK ${Build.VERSION.SDK_INT})
+            Android build ID: ${Build.DISPLAY}
+            Device brand: ${Build.BRAND}
+            Device manufacturer: ${Build.MANUFACTURER}
+            Device name: ${Build.DEVICE}
+            Device model: ${Build.MODEL}
+            Device product name: ${Build.PRODUCT}
+            """.trimIndent()
+
+        activity?.copyToClipboard("Debug information", deviceInfo)
+    }
+
     private fun getFormattedBuildTime(): String {
-        try {
+        return try {
             val inputDf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'", Locale.US)
             inputDf.timeZone = TimeZone.getTimeZone("UTC")
             val buildTime = inputDf.parse(BuildConfig.BUILD_TIME)
 
             val outputDf = DateFormat.getDateTimeInstance(
-                    DateFormat.MEDIUM, DateFormat.SHORT, Locale.getDefault())
+                DateFormat.MEDIUM, DateFormat.SHORT, Locale.getDefault()
+            )
             outputDf.timeZone = TimeZone.getDefault()
 
-            return buildTime.toDateTimestampString(dateFormat)
+            buildTime.toDateTimestampString(dateFormat)
         } catch (e: ParseException) {
-            return BuildConfig.BUILD_TIME
+            BuildConfig.BUILD_TIME
         }
     }
 }

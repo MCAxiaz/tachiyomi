@@ -6,8 +6,9 @@ import android.widget.CompoundButton
 import android.widget.Spinner
 import androidx.annotation.ArrayRes
 import androidx.core.widget.NestedScrollView
-import com.f2prateek.rx.preferences.Preference
+import com.f2prateek.rx.preferences.Preference as RxPreference
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.tfcporciuncula.flow.Preference
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.data.preference.getOrDefault
@@ -29,6 +30,7 @@ import kotlinx.android.synthetic.main.reader_settings_sheet.pager_prefs_group
 import kotlinx.android.synthetic.main.reader_settings_sheet.rotation_mode
 import kotlinx.android.synthetic.main.reader_settings_sheet.scale_type
 import kotlinx.android.synthetic.main.reader_settings_sheet.show_page_number
+import kotlinx.android.synthetic.main.reader_settings_sheet.true_color
 import kotlinx.android.synthetic.main.reader_settings_sheet.viewer
 import kotlinx.android.synthetic.main.reader_settings_sheet.webtoon_prefs_group
 import kotlinx.android.synthetic.main.reader_settings_sheet.webtoon_side_padding
@@ -81,16 +83,18 @@ class ReaderSettingsSheet(private val activity: ReaderActivity) : BottomSheetDia
         viewer.setSelection(activity.presenter.manga?.viewer ?: 0, false)
 
         rotation_mode.bindToPreference(preferences.rotation(), 1)
-        background_color.bindToPreference(preferences.readerTheme())
+        background_color.bindToIntPreference(preferences.readerTheme(), R.array.reader_themes_values)
         show_page_number.bindToPreference(preferences.showPageNumber())
         fullscreen.bindToPreference(preferences.fullscreen())
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            cutout_short.visible()
-            cutout_short.bindToPreference(preferences.cutoutShort())
-        }
+        cutout_short.bindToPreference(preferences.cutoutShort())
         keepscreen.bindToPreference(preferences.keepScreenOn())
         long_tap.bindToPreference(preferences.readWithLongTap())
         always_show_chapter_transition.bindToPreference(preferences.alwaysShowChapterTransition())
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            true_color.visible()
+            true_color.bindToPreference(preferences.trueColor())
+        }
     }
 
     /**
@@ -121,8 +125,18 @@ class ReaderSettingsSheet(private val activity: ReaderActivity) : BottomSheetDia
      * Binds a checkbox or switch view with a boolean preference.
      */
     private fun CompoundButton.bindToPreference(pref: Preference<Boolean>) {
-        isChecked = pref.getOrDefault()
+        isChecked = pref.get()
         setOnCheckedChangeListener { _, isChecked -> pref.set(isChecked) }
+    }
+
+    /**
+     * Binds a spinner to an int preference with an optional offset for the value.
+     */
+    private fun Spinner.bindToPreference(pref: RxPreference<Int>, offset: Int = 0) {
+        onItemSelectedListener = IgnoreFirstSpinnerListener { position ->
+            pref.set(position + offset)
+        }
+        setSelection(pref.getOrDefault() - offset, false)
     }
 
     /**
@@ -132,7 +146,7 @@ class ReaderSettingsSheet(private val activity: ReaderActivity) : BottomSheetDia
         onItemSelectedListener = IgnoreFirstSpinnerListener { position ->
             pref.set(position + offset)
         }
-        setSelection(pref.getOrDefault() - offset, false)
+        setSelection(pref.get() - offset, false)
     }
 
     /**
@@ -143,8 +157,8 @@ class ReaderSettingsSheet(private val activity: ReaderActivity) : BottomSheetDia
     private fun Spinner.bindToIntPreference(pref: Preference<Int>, @ArrayRes intValuesResource: Int) {
         val intValues = resources.getStringArray(intValuesResource).map { it.toIntOrNull() }
         onItemSelectedListener = IgnoreFirstSpinnerListener { position ->
-            pref.set(intValues[position])
+            pref.set(intValues[position]!!)
         }
-        setSelection(intValues.indexOf(pref.getOrDefault()), false)
+        setSelection(intValues.indexOf(pref.get()), false)
     }
 }

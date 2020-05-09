@@ -40,11 +40,10 @@
     <string name="action_add_category">添加分类</string>
     <string name="action_edit_categories">编辑分类</string>
     <string name="action_rename_category">重命名分类</string>
-    <string name="action_move_category">移至分类</string>
+    <string name="action_move_category">设置分类</string>
     <string name="action_edit_cover">编辑封面</string>
     <string name="action_sort_up">升序</string>
     <string name="action_show_downloaded">已下载</string>
-    <string name="action_start">开始</string>
     <string name="action_stop">停止</string>
     <string name="action_pause">暂停</string>
     <string name="action_close">关闭</string>
@@ -55,12 +54,10 @@
     <string name="action_resume">继续阅读</string>
     <string name="action_move">移动</string>
     <string name="action_open_in_browser">在浏览器中打开</string>
-    <string name="action_add_to_home_screen">添加至主屏幕</string>
     <string name="action_display_mode">显示模式</string>
     <string name="action_display">显示</string>
     <string name="action_display_grid">网格</string>
     <string name="action_display_list">列表</string>
-    <string name="action_set_filter">设置筛选</string>
     <string name="action_cancel">取消</string>
     <string name="action_sort">排序</string>
     <string name="action_install">安装</string>
@@ -68,7 +65,6 @@
     <string name="action_save">保存</string>
     <string name="action_reset">重置</string>
     <string name="action_undo">撤销</string>
-    <string name="action_export">导出</string>
     <string name="track">同步</string>
     <string name="label_migration">来源迁移</string>
     <string name="action_mark_previous_as_read">标记之前章节为已读</string>
@@ -78,8 +74,7 @@
     <string name="action_restore">恢复</string>
     <string name="action_open">打开</string>
     <string name="action_login">登录</string>
-    <string name="deleting">删除中…</string>
-    <string name="loading">加载中…</string>
+    <string name="loading">正在加载…</string>
     <string name="action_sort_down">降序</string>
     <string name="action_display_download_badge">已下载标记</string>
     <string name="app_not_available">应用程序不可用</string>
@@ -90,7 +85,7 @@
     <string name="pref_category_tracking">同步</string>
     <string name="pref_category_advanced">高级</string>
     <string name="pref_category_about">关于</string>
-    <string name="pref_library_columns">书架页面网格</string>
+    <string name="pref_library_columns">书架界面网格</string>
     <string name="portrait">纵向</string>
     <string name="landscape">横向</string>
     <string name="default_columns">预设</string>
@@ -115,7 +110,7 @@
     <string name="pref_auto_update_manga_sync">阅读后同步章节</string>
     <string name="pref_start_screen">开始页面</string>
     <string name="pref_language">语言</string>
-    <string name="system_default">系统默认</string>
+    <string name="system_default">默认</string>
     <string name="default_category">默认分类</string>
     <string name="default_category_summary">总是询问</string>
     <string name="all_lang">全部</string>
@@ -211,20 +206,13 @@
     <string name="pref_backup_service_category">自动备份</string>
     <string name="pref_backup_interval">备份频率</string>
     <string name="pref_backup_slots">最大自动备份数</string>
-    <string name="dialog_restoring_backup">正在还原备份
-\n「%1$s」已添加至书架</string>
     <string name="source_not_found">未找到图源</string>
-    <string name="dialog_restoring_source_not_found">正在还原备份
-\n「%1$s」未找到图源</string>
     <string name="backup_created">已创建备份</string>
     <string name="restore_completed">还原完成</string>
-    <string name="error_opening_log">打开日志失败</string>
-    <string name="restore_completed_content">已还原 %1$s。 
-\n%2$s 出现错误。</string>
-    <string name="backup_restore_content">还原备份将会抓取图源数据，需联网。
-\n
-\n请确认你已安装了所有必需的扩展插件，若图源需要登录，请先登录再还原备份。</string>
-    <string name="file_saved">文件已保存至 %1$s</string>
+    <string name="restore_completed_content">%1$s 已完成，出现 %2$s 错误</string>
+    <string name="backup_restore_content">还原备份将会抓取图源数据，需联网。 
+\n 
+\n请确认你已安装了全部必需的扩展插件，若图源需要登录，请先登录再还原备份。</string>
     <string name="backup_choice">需要备份什么？</string>
     <string name="restoring_backup">正在还原备份</string>
     <string name="creating_backup">正在创建备份</string>
@@ -245,8 +233,6 @@
     <string name="pref_refresh_library_tracking_summary">更新同步服务的状态，评分以及已读章节</string>
     <string name="version">版本</string>
     <string name="build_time">构建时间</string>
-    <string name="pref_enable_automatic_updates">检查更新</string>
-    <string name="pref_enable_automatic_updates_summary">自动检查应用更新</string>
     <string name="pref_enable_acra">发送错误报告</string>
     <string name="pref_acra_summary">协助我们修复错误。发送的错误报告不包含个人敏感信息</string>
     <string name="login_title">登录 %1$s</string>
@@ -262,12 +248,11 @@
     <string name="local_source_badge">本地</string>
     <string name="confirm_delete_manga">确定要删除选中的漫画吗？</string>
     <string name="also_delete_chapters">同时删除已下载章节</string>
-    <string name="source_search_options">筛选</string>
     <string name="source_requires_login">此图源需要登录</string>
     <string name="select_source">选择图源</string>
     <string name="no_valid_sources">请至少启用一个有效图源</string>
     <string name="no_more_results">未找到更多结果</string>
-    <string name="local_source">本地漫画</string>
+    <string name="local_source">本地图源</string>
     <string name="other_source">其它</string>
     <string name="invalid_combination">默认分类不能与其它分类一起选择</string>
     <string name="added_to_library">已将此漫画添加至书架</string>
@@ -287,20 +272,12 @@
     <string name="manga_info_author_label">原作</string>
     <string name="manga_info_artist_label">画师</string>
     <string name="manga_info_chapters_label">章节</string>
-    <string name="manga_info_last_chapter_label">最新章节</string>
-    <string name="manga_info_latest_data_label">更新日期</string>
     <string name="manga_info_status_label">状态</string>
     <string name="manga_info_source_label">图源</string>
     <string name="manga_info_genres_label">类型</string>
-    <string name="circular_icon">圆形图标</string>
-    <string name="rounded_icon">方圆形图标</string>
-    <string name="square_icon">方形图标</string>
-    <string name="shortcut_title">快捷方式标题</string>
-    <string name="shortcut_created">已添加快捷方式至主屏幕。</string>
-    <string name="icon_shape">图标形状</string>
-    <string name="icon_creation_fail">创建快捷方式失败</string>
     <string name="delete_downloads_for_manga">删除已下载的章节？</string>
-    <string name="copied_to_clipboard">「%1$s」已复制到剪贴板</string>
+    <string name="copied_to_clipboard">复制到剪贴板：
+\n「%1$s」</string>
     <string name="source_not_installed">未安装图源：%1$s</string>
     <string name="manga_chapters_tab">章节</string>
     <string name="manga_chapter_no_title">无标题</string>
@@ -359,24 +336,21 @@
     <string name="chapter_subtitle">第 %1$s 章</string>
     <string name="no_next_chapter">下面没有啦</string>
     <string name="no_previous_chapter">前面没有啦</string>
-    <string name="decode_image_error">图片解码失败</string>
+    <string name="decode_image_error">图片加载失败</string>
     <string name="confirm_set_image_as_cover">要将此页设为封面吗？</string>
-    <string name="viewer_for_this_series">阅读模式</string>
     <string name="transition_finished">已读完：</string>
     <string name="transition_current">当前章节：</string>
     <string name="transition_next">下一章：</string>
     <string name="transition_previous">上一章：</string>
     <string name="transition_no_next">下面没有啦</string>
     <string name="transition_no_previous">前面没有啦</string>
-    <string name="transition_pages_loading">页面加载中…</string>
+    <string name="transition_pages_loading">正在加载页面…</string>
     <string name="transition_pages_error">第 %1$s 页加载失败</string>
-    <string name="recent_manga_source">%1$s - 第 %2$s 章</string>
     <string name="migration_info">选择需要迁移的图源</string>
     <string name="migration_dialog_what_to_include">选择需要迁移的数据</string>
     <string name="select">选择</string>
     <string name="migrate">迁移</string>
     <string name="copy">共存</string>
-    <string name="migrating">正在迁移…</string>
     <string name="download_queue_error">下载章节失败，请重试</string>
     <string name="notification_update_progress">更新中：%1$d/%2$d</string>
     <string name="notification_new_chapters">发现新章节</string>
@@ -401,13 +375,13 @@
     <string name="description_backdrop">漫画背景</string>
     <string name="description_cover">漫画封面</string>
     <string name="information_no_downloads">没有下载中的任务</string>
-    <string name="information_no_recent">没有新章节</string>
-    <string name="information_no_recent_manga">没有近期阅读</string>
-    <string name="information_empty_library">你的书架为空，可从图源里添加漫画至书架。</string>
+    <string name="information_no_recent">没有最近更新</string>
+    <string name="information_no_recent_manga">最近什么也没读</string>
+    <string name="information_empty_library">你的书架为空，可从「浏览」里添加漫画至书架。</string>
     <string name="information_empty_category">你还没有分类。点击右下方的加号按钮创建一个分类以管理书架。</string>
     <string name="download_notifier_downloader_title">下载</string>
     <string name="download_notifier_title_error">错误</string>
-    <string name="download_notifier_unkown_error">下载时发生不可预期的错误</string>
+    <string name="download_notifier_unknown_error">下载时发生不可预期的错误</string>
     <string name="download_notifier_page_error">目录中缺少页面</string>
     <string name="download_notifier_page_ready_error">页面加载失败</string>
     <string name="download_notifier_text_only_wifi">无可用 Wi-Fi</string>
@@ -464,6 +438,7 @@
     <string name="lock_always">总是</string>
     <string name="lock_never">从不</string>
     <plurals name="lock_after_mins">
+        <item quantity="one">1分钟后</item>
         <item quantity="other">%1$s 分钟后</item>
     </plurals>
     <string name="secure_screen">安全屏幕</string>
@@ -480,12 +455,14 @@
     <string name="lock_with_biometrics">启用生物识别锁定</string>
     <string name="pref_cutout_short">在刘海屏区域显示内容</string>
     <plurals name="notification_chapters_generic">
+        <item quantity="one">1个新章节</item>
         <item quantity="other">%1$d 个新章节</item>
     </plurals>
     <string name="notification_chapters_single">第 %1$s 章</string>
     <string name="notification_chapters_single_and_more">第 %1$s 章及另外 %2$d 章</string>
     <string name="notification_chapters_multiple">第 %1$s 章</string>
     <plurals name="notification_chapters_multiple_and_more">
+        <item quantity="one">第 %1$s 章及另外1章</item>
         <item quantity="other">第 %1$s 章及另外 %2$d 章</item>
     </plurals>
     <string name="notification_check_updates">正在检查新章节</string>
@@ -495,12 +472,13 @@
     <string name="email">邮箱地址</string>
     <string name="pref_always_show_chapter_transition">总是显示章节之间的过渡界面</string>
     <plurals name="notification_new_chapters_summary">
+        <item quantity="one">共 1 个标题</item>
         <item quantity="other">共 %d 个标题</item>
     </plurals>
     <string name="pref_theme_light">默认浅色主题</string>
     <string name="theme_light_default">默认</string>
     <string name="theme_light_blue">浅蓝色</string>
-    <string name="notices">告示</string>
+    <string name="notices">预览构建通知</string>
     <string name="changelog">更新日志</string>
     <string name="action_menu">菜单</string>
     <string name="action_reorganize_by">重新排序</string>
@@ -511,6 +489,7 @@
     <string name="action_sort_last_checked">最近检查</string>
     <string name="pref_enable_automatic_extension_updates">检查扩展插件更新</string>
     <plurals name="update_check_notification_ext_updates">
+        <item quantity="one">1个扩展插件可更新</item>
         <item quantity="other">%d 个扩展插件可更新</item>
     </plurals>
     <string name="channel_ext_updates">扩展插件更新</string>
@@ -519,4 +498,58 @@
     <string name="updating_library">正在更新书架</string>
     <string name="pref_category_reading">阅读</string>
     <string name="pref_skip_filtered_chapters">跳过已筛选章节</string>
+    <string name="pinned_sources">已置顶</string>
+    <string name="action_unpin">取消置顶</string>
+    <string name="action_pin">置顶</string>
+    <string name="webtoon_side_padding_25">25%</string>
+    <string name="webtoon_side_padding_20">20%</string>
+    <string name="webtoon_side_padding_15">15%</string>
+    <string name="webtoon_side_padding_10">10%</string>
+    <string name="webtoon_side_padding_0">无</string>
+    <string name="pref_webtoon_side_padding">侧边填充</string>
+    <string name="vertical_plus_viewer">从上到下（连续）</string>
+    <string name="action_select_inverse">反选</string>
+    <string name="add_tracking">添加同步</string>
+    <string name="information_webview_required">Tachiyomi 需要 WebView</string>
+    <string name="manga_info_collapse">隐藏更多信息</string>
+    <string name="manga_info_expand">显示更多信息</string>
+    <string name="manga_info_about_label">关于</string>
+    <string name="licenses">开源许可证</string>
+    <string name="website">官网</string>
+    <string name="confirm_exit">再按一次退出</string>
+    <string name="pref_confirm_exit">确认退出</string>
+    <string name="add_to_library">添加至书架</string>
+    <string name="in_library">在书架中</string>
+    <string name="label_downloaded_only">仅已下载</string>
+    <string name="creating_backup_error">备份失败</string>
+    <string name="restoring_backup_canceled">取消还原</string>
+    <string name="restoring_backup_error">还原备份失败</string>
+    <string name="restore_in_progress">还原已在进行</string>
+    <string name="backup_in_progress">备份已在进行</string>
+    <string name="channel_backup_restore">备份与还原</string>
+    <string name="channel_backup_restore_complete">完成</string>
+    <string name="channel_backup_restore_progress">进度</string>
+    <string name="recent_manga_time">第 %1$s 章 - %2$s</string>
+    <string name="manga_info_latest_data_label">更新日期</string>
+    <string name="manga_info_last_chapter_label">最新章节</string>
+    <string name="local_source_help_guide">本地图源指南</string>
+    <string name="last_used_source">上次浏览</string>
+    <plurals name="download_queue_summary">
+        <item quantity="one">剩余1个</item>
+        <item quantity="other">剩余 %1$s 个</item>
+    </plurals>
+    <string name="downloaded_only_summary">筛选书架的全部漫画</string>
+    <string name="check_for_updates">检查更新</string>
+    <string name="restore_duration">%02d 分，%02d 秒</string>
+    <string name="pref_search_pinned_sources_only">仅在已置顶的图源中搜索</string>
+    <string name="error_invalid_date_supplied">无效的日期</string>
+    <string name="track_finished_reading_date">完成阅读时间</string>
+    <string name="track_started_reading_date">开始阅读时间</string>
+    <string name="gray_background">灰色</string>
+    <string name="pref_category_for_this_series">对于此系列</string>
+    <string name="viewer">阅读模式</string>
+    <plurals name="num_categories">
+        <item quantity="one"></item>
+        <item quantity="other">%d 个分类</item>
+    </plurals>
 </resources>
