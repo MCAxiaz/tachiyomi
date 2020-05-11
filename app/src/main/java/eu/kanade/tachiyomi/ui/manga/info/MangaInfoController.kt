@@ -247,11 +247,13 @@ class MangaInfoController(private val fromSource: Boolean = false) :
             .into(binding.mangaCover)
 
         binding.backdrop?.let {
-            GlideApp.with(view.context)
-                .load(mangaThumbnail)
-                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                .centerCrop()
-                .into(it)
+            it.post {
+                GlideApp.with(view.context)
+                    .load(mangaThumbnail)
+                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                    .centerCrop()
+                    .into(it)
+            }
         }
 
         // Manga info section
