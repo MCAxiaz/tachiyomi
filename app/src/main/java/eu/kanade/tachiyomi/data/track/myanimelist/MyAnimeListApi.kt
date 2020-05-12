@@ -92,6 +92,14 @@ class MyAnimeListApi(private val client: OkHttpClient, interceptor: MyAnimeListI
                 extractDataFromEditPage(page).apply {
                     // Apply changes to the just fetched data
                     copyPersonalFrom(track)
+
+                    // TODO: MAL Tracking
+                    if (track.last_chapter_read == track.total_chapters) {
+                        val totalVolumes = page.selectInt("#totalVol")
+                        if (totalVolumes > 0 && this.num_read_volumes.toInt() == 0) {
+                            this.num_read_volumes = totalVolumes.toString()
+                        }
+                    }
                 }
             }
 
@@ -495,7 +503,12 @@ class MyAnimeListApi(private val client: OkHttpClient, interceptor: MyAnimeListI
                 start_date_day = cal[Calendar.DAY_OF_MONTH].toString()
                 start_date_year = cal[Calendar.YEAR].toString()
             }
-            track.finished_reading_date.toCalendar()?.let { cal ->
+
+            // TODO: MAL Tracking
+            val endDate = track.finished_reading_date.toCalendar()
+                ?: if (track.last_chapter_read == track.total_chapters) Calendar.getInstance() else null
+
+            endDate?.let { cal ->
                 finish_date_month = (cal[Calendar.MONTH] + 1).toString()
                 finish_date_day = cal[Calendar.DAY_OF_MONTH].toString()
                 finish_date_year = cal[Calendar.YEAR].toString()
