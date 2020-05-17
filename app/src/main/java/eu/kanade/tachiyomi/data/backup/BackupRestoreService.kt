@@ -111,6 +111,11 @@ class BackupRestoreService : Service() {
     private var restoreAmount = 0
 
     /**
+     * Mapping of source ID to source name from backup data
+     */
+    private var sourceMapping: Map<Long, String> = emptyMap()
+
+    /**
      * List containing errors
      */
     private val errors = mutableListOf<Pair<Date, String>>()
@@ -124,11 +129,11 @@ class BackupRestoreService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+
         notifier = BackupNotifier(this)
+        wakeLock = acquireWakeLock(javaClass.name)
 
         startForeground(Notifications.ID_RESTORE_PROGRESS, notifier.showRestoreProgress().build())
-
-        wakeLock = acquireWakeLock(javaClass.name)
     }
 
     override fun stopService(name: Intent?): Boolean {
@@ -175,7 +180,9 @@ class BackupRestoreService : Service() {
             stopSelf(startId)
         }
         job = GlobalScope.launch(handler) {
-            restoreBackup(uri)
+            if (!restoreBackup(uri)) {
+                notifier.showRestoreError(getString(R.string.restoring_backup_canceled))
+            }
         }
         job?.invokeOnCompletion {
             stopSelf(startId)
@@ -189,7 +196,7 @@ class BackupRestoreService : Service() {
      *
      * @param uri backup file to restore
      */
-    private fun restoreBackup(uri: Uri) {
+    private fun restoreBackup(uri: Uri): Boolean {
         val startTime = System.currentTimeMillis()
 
         val reader = JsonReader(contentResolver.openInputStream(uri)!!.bufferedReader())
@@ -210,10 +217,13 @@ class BackupRestoreService : Service() {
         // Restore categories
         restoreCategories(json.get(CATEGORIES))
 
+        // Store source mapping for error messages
+        sourceMapping = BackupRestoreValidator.getSourceMapping(json)
+
         // Restore individual manga
         mangasJson.forEach {
             if (job?.isActive != true) {
-                throw Exception(getString(R.string.restoring_backup_canceled))
+                return false
             }
 
             restoreManga(it.asJsonObject)
@@ -225,6 +235,7 @@ class BackupRestoreService : Service() {
         val logFile = writeErrorLog()
 
         notifier.showRestoreComplete(time, errors.size, logFile.parent, logFile.name)
+        return true
     }
 
     private fun restoreCategories(categoriesJson: JsonElement) {
@@ -256,9 +267,20 @@ class BackupRestoreService : Service() {
         )
 
         try {
-            restoreMangaData(manga, chapters, categories, history, tracks)
+            val source = backupManager.sourceManager.get(manga.source)
+            if (source != null) {
+                restoreMangaData(manga, source, chapters, categories, history, tracks)
+            } else {
+                val message = if (manga.source in sourceMapping) {
+                    getString(R.string.source_not_found_name, sourceMapping[manga.source])
+                } else {
+                    getString(R.string.source_not_found)
+                }
+
+                errors.add(Date() to "${manga.title} - $message")
+            }
         } catch (e: Exception) {
-            errors.add(Date() to "${manga.title} - ${getString(R.string.source_not_found)}")
+            errors.add(Date() to "${manga.title} - ${e.message}")
         }
 
         restoreProgress += 1
@@ -269,6 +291,7 @@ class BackupRestoreService : Service() {
      * Returns a manga restore observable
      *
      * @param manga manga data from json
+     * @param source source to get manga data from
      * @param chapters chapters data from json
      * @param categories categories data from json
      * @param history history data from json
@@ -276,13 +299,12 @@ class BackupRestoreService : Service() {
      */
     private fun restoreMangaData(
         manga: Manga,
+        source: Source,
         chapters: List<Chapter>,
         categories: List<String>,
         history: List<DHistory>,
         tracks: List<Track>
     ) {
-        // Get source
-        val source = backupManager.sourceManager.getOrStub(manga.source)
         val dbManga = backupManager.getMangaFromDatabase(manga)
 
         db.inTransaction {
@@ -404,7 +426,7 @@ class BackupRestoreService : Service() {
                             track
                         }
                 } else {
-                    errors.add(Date() to "${manga.title} - ${service?.name} not logged in")
+                    errors.add(Date() to "${manga.title} - ${getString(R.string.tracker_not_logged_in, service?.name)}")
                     Observable.empty()
                 }
             }

@@ -19,7 +19,7 @@ import eu.kanade.tachiyomi.util.preference.preferenceCategory
 import eu.kanade.tachiyomi.util.preference.switchPreference
 import eu.kanade.tachiyomi.util.preference.titleRes
 import eu.kanade.tachiyomi.util.system.LocaleHelper
-import java.util.Calendar
+import java.util.Date
 import kotlinx.coroutines.flow.launchIn
 
 class SettingsGeneralController : SettingsController() {
@@ -67,7 +67,7 @@ class SettingsGeneralController : SettingsController() {
                 langs += Pair("", "${context.getString(R.string.system_default)} (${LocaleHelper.getDisplayName("")})")
                 langs += arrayOf(
                     "ar", "bg", "bn", "ca", "cs", "de", "el", "en-US", "en-GB", "es", "fr", "he",
-                    "hi", "hu", "in", "it", "ja", "ko", "lv", "ms", "nb-rNO", "nl", "pl", "pt",
+                    "hi", "hr", "hu", "in", "it", "ja", "ko", "lv", "ms", "nb-rNO", "nl", "pl", "pt",
                     "pt-BR", "ro", "ru", "sc", "sr", "sv", "th", "tl", "tr", "uk", "vi", "zh-rCN"
                 )
                     .map {
@@ -94,9 +94,9 @@ class SettingsGeneralController : SettingsController() {
                 titleRes = R.string.pref_date_format
                 entryValues = arrayOf("", "MM/dd/yy", "dd/MM/yy", "yyyy-MM-dd")
 
-                val currentDate = Calendar.getInstance().time
+                val now = Date().time
                 entries = entryValues.map { value ->
-                    val formattedDate = preferences.dateFormat(value.toString()).format(currentDate)
+                    val formattedDate = preferences.dateFormat(value.toString()).format(now)
                     if (value == "") {
                         "${context.getString(R.string.system_default)} ($formattedDate)"
                     } else {
