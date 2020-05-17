@@ -28,7 +28,7 @@ import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceController
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchController
 import eu.kanade.tachiyomi.ui.browse.source.latest.LatestUpdatesController
 import eu.kanade.tachiyomi.ui.setting.SettingsSourcesController
-import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import reactivecircus.flowbinding.appcompat.QueryTextEvent
@@ -185,7 +185,7 @@ class SourceController :
      */
     private fun openCatalogue(source: CatalogueSource, controller: BrowseSourceController) {
         preferences.lastUsedCatalogueSource().set(source.id)
-        (parentController as BrowseController).pushController(controller.withFadeTransaction())
+        parentController!!.router.pushController(controller.withFadeTransaction())
     }
 
     /**
@@ -208,13 +208,13 @@ class SourceController :
 
         // Create query listener which opens the global search view.
         searchView.queryTextEvents()
-            .filter { it is QueryTextEvent.QuerySubmitted }
+            .filterIsInstance<QueryTextEvent.QuerySubmitted>()
             .onEach { performGlobalSearch(it.queryText.toString()) }
             .launchIn(scope)
     }
 
     private fun performGlobalSearch(query: String) {
-        (parentController as BrowseController).pushController(
+        parentController!!.router.pushController(
             GlobalSearchController(query).withFadeTransaction()
         )
     }
@@ -229,7 +229,7 @@ class SourceController :
         when (item.itemId) {
             // Initialize option to open catalogue settings.
             R.id.action_settings -> {
-                (parentController as BrowseController).pushController(
+                parentController!!.router.pushController(
                     SettingsSourcesController().withFadeTransaction()
                 )
             }
