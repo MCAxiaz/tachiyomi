@@ -28,7 +28,6 @@ import eu.kanade.tachiyomi.util.storage.getUriCompat
 import eu.kanade.tachiyomi.util.system.acquireWakeLock
 import eu.kanade.tachiyomi.util.system.isServiceRunning
 import java.io.File
-import java.util.ArrayList
 import java.util.concurrent.atomic.AtomicInteger
 import rx.Observable
 import rx.Subscription
@@ -254,9 +253,9 @@ class LibraryUpdateService(
         // Initialize the variables holding the progress of the updates.
         val count = AtomicInteger(0)
         // List containing new updates
-        val newUpdates = ArrayList<Pair<LibraryManga, Array<Chapter>>>()
+        val newUpdates = mutableListOf<Pair<LibraryManga, Array<Chapter>>>()
         // List containing failed updates
-        val failedUpdates = ArrayList<Pair<Manga, String?>>()
+        val failedUpdates = mutableListOf<Pair<Manga, String?>>()
         // Boolean to determine if DownloadManager has downloads
         var hasDownloads = false
 
@@ -307,7 +306,7 @@ class LibraryUpdateService(
                     }
                 }
 
-                if (failedUpdates.isNotEmpty()) {
+                if (preferences.showLibraryUpdateErrors() && failedUpdates.isNotEmpty()) {
                     val errorFile = writeErrorFile(failedUpdates)
                     notifier.showUpdateErrorNotification(
                         failedUpdates.map { it.first.title },
@@ -334,16 +333,24 @@ class LibraryUpdateService(
         val source = sourceManager.get(manga.source) ?: return Observable.empty()
 
         // Update manga details metadata in the background
-        source.fetchMangaDetails(manga)
-            .map { networkManga ->
-                manga.prepUpdateCover(coverCache, networkManga, false)
-                manga.copyFrom(networkManga)
-                db.insertManga(manga).executeAsBlocking()
-                manga
-            }
-            .onErrorResumeNext { Observable.just(manga) }
-            .subscribeOn(Schedulers.io())
-            .subscribe()
+        if (preferences.autoUpdateMetadata()) {
+            source.fetchMangaDetails(manga)
+                .map { updatedManga ->
+                    // Avoid "losing" existing cover
+                    if (!updatedManga.thumbnail_url.isNullOrEmpty()) {
+                        manga.prepUpdateCover(coverCache, updatedManga, false)
+                    } else {
+                        updatedManga.thumbnail_url = manga.thumbnail_url
+                    }
+
+                    manga.copyFrom(updatedManga)
+                    db.insertManga(manga).executeAsBlocking()
+                    manga
+                }
+                .onErrorResumeNext { Observable.just(manga) }
+                .subscribeOn(Schedulers.io())
+                .subscribe()
+        }
 
         return source.fetchChapterList(manga)
             .map { syncChaptersWithSource(db, it, manga, source) }

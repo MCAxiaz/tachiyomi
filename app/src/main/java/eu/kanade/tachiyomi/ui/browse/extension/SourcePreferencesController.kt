@@ -25,16 +25,15 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.preference.EmptyPreferenceDataStore
 import eu.kanade.tachiyomi.data.preference.SharedPreferencesDataStore
-import eu.kanade.tachiyomi.databinding.ExtensionPreferencesControllerBinding
+import eu.kanade.tachiyomi.databinding.SourcePreferencesControllerBinding
 import eu.kanade.tachiyomi.source.ConfigurableSource
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.ui.base.controller.NucleusController
-import eu.kanade.tachiyomi.util.preference.preferenceCategory
 import timber.log.Timber
 
 @SuppressLint("RestrictedApi")
-class ExtensionPreferencesController(bundle: Bundle? = null) :
-    NucleusController<ExtensionPreferencesControllerBinding, ExtensionPreferencesPresenter>(bundle),
+class SourcePreferencesController(bundle: Bundle? = null) :
+    NucleusController<SourcePreferencesControllerBinding, SourcePreferencesPresenter>(bundle),
     PreferenceManager.OnDisplayPreferenceDialogListener,
     DialogPreference.TargetFragment {
 
@@ -42,31 +41,31 @@ class ExtensionPreferencesController(bundle: Bundle? = null) :
 
     private var preferenceScreen: PreferenceScreen? = null
 
-    constructor(pkgName: String) : this(
+    constructor(sourceId: Long) : this(
         Bundle().apply {
-            putString(PKGNAME_KEY, pkgName)
+            putLong(SOURCE_ID, sourceId)
         }
     )
 
     override fun inflateView(inflater: LayoutInflater, container: ViewGroup): View {
         val themedInflater = inflater.cloneInContext(getPreferenceThemeContext())
-        binding = ExtensionPreferencesControllerBinding.inflate(themedInflater)
+        binding = SourcePreferencesControllerBinding.inflate(themedInflater)
         return binding.root
     }
 
-    override fun createPresenter(): ExtensionPreferencesPresenter {
-        return ExtensionPreferencesPresenter(args.getString(PKGNAME_KEY)!!)
+    override fun createPresenter(): SourcePreferencesPresenter {
+        return SourcePreferencesPresenter(args.getLong(SOURCE_ID))
     }
 
     override fun getTitle(): String? {
-        return resources?.getString(R.string.label_extension_info)
+        return presenter.source?.toString()
     }
 
     @SuppressLint("PrivateResource")
     override fun onViewCreated(view: View) {
         super.onViewCreated(view)
 
-        val extension = presenter.extension ?: return
+        val source = presenter.source ?: return
         val context = view.context
 
         val themedContext by lazy { getPreferenceThemeContext() }
@@ -76,27 +75,17 @@ class ExtensionPreferencesController(bundle: Bundle? = null) :
         val screen = manager.createPreferenceScreen(themedContext)
         preferenceScreen = screen
 
-        val multiSource = extension.sources.size > 1
-
-        for (source in extension.sources) {
-            if (source is ConfigurableSource) {
-                try {
-                    addPreferencesForSource(screen, source, multiSource)
-                } catch (e: AbstractMethodError) {
-                    Timber.e("Source did not implement [addPreferencesForSource]: ${source.name}")
-                }
-            }
+        try {
+            addPreferencesForSource(screen, source)
+        } catch (e: AbstractMethodError) {
+            Timber.e("Source did not implement [addPreferencesForSource]: ${source.name}")
         }
 
         manager.setPreferences(screen)
 
-        binding.extensionPrefsRecycler.layoutManager = LinearLayoutManager(context)
-        binding.extensionPrefsRecycler.adapter = PreferenceGroupAdapter(screen)
-        binding.extensionPrefsRecycler.addItemDecoration(DividerItemDecoration(context, VERTICAL))
-
-        if (screen.preferenceCount == 0) {
-            binding.extensionPrefsEmptyView.show(R.string.ext_empty_preferences)
-        }
+        binding.recycler.layoutManager = LinearLayoutManager(context)
+        binding.recycler.adapter = PreferenceGroupAdapter(screen)
+        binding.recycler.addItemDecoration(DividerItemDecoration(context, VERTICAL))
     }
 
     override fun onDestroyView(view: View) {
@@ -114,24 +103,14 @@ class ExtensionPreferencesController(bundle: Bundle? = null) :
         lastOpenPreferencePosition = savedInstanceState.get(LASTOPENPREFERENCE_KEY) as? Int
     }
 
-    private fun addPreferencesForSource(screen: PreferenceScreen, source: Source, multiSource: Boolean) {
+    private fun addPreferencesForSource(screen: PreferenceScreen, source: Source) {
         val context = screen.context
 
-        // TODO
-        val dataStore = SharedPreferencesDataStore(/*if (source is HttpSource) {
-            source.preferences
-        } else {*/
+        val dataStore = SharedPreferencesDataStore(
             context.getSharedPreferences("source_${source.id}", Context.MODE_PRIVATE)
-            /*}*/
         )
 
         if (source is ConfigurableSource) {
-            if (multiSource) {
-                screen.preferenceCategory {
-                    title = source.toString()
-                }
-            }
-
             val newScreen = screen.preferenceManager.createPreferenceScreen(context)
             source.setupPreferenceScreen(newScreen)
 
@@ -190,7 +169,7 @@ class ExtensionPreferencesController(bundle: Bundle? = null) :
     }
 
     private companion object {
-        const val PKGNAME_KEY = "pkg_name"
+        const val SOURCE_ID = "source_id"
         const val LASTOPENPREFERENCE_KEY = "last_open_preference"
     }
 }

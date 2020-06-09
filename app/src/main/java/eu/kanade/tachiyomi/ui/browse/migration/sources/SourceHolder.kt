@@ -1,7 +1,6 @@
-package eu.kanade.tachiyomi.ui.migration
+package eu.kanade.tachiyomi.ui.browse.migration.sources
 
 import android.view.View
-import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.source.icon
 import eu.kanade.tachiyomi.ui.base.holder.BaseFlexibleViewHolder
 import eu.kanade.tachiyomi.ui.base.holder.SlicedHolder
@@ -26,10 +25,7 @@ class SourceHolder(view: View, override val adapter: SourceAdapter) :
 
     init {
         source_latest.gone()
-        source_browse.setText(R.string.select)
-        source_browse.setOnClickListener {
-            adapter.selectClickListener?.onSelectClick(bindingAdapterPosition)
-        }
+        source_browse.gone()
     }
 
     fun bind(item: SourceItem) {
@@ -39,12 +35,9 @@ class SourceHolder(view: View, override val adapter: SourceAdapter) :
         // Set source name
         title.text = source.name
 
-        // Set circle letter image.
+        // Set source icon
         itemView.post {
-            val icon = source.icon()
-            if (icon != null) {
-                image.setImageDrawable(icon)
-            }
+            image.setImageDrawable(source.icon())
         }
     }
 }

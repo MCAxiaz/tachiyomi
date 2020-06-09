@@ -20,7 +20,7 @@
     <string name="label_sources">Sources</string>
     <string name="label_categories">Categories</string>
     <string name="label_backup">Backup</string>
-    <string name="label_migration">Source migration</string>
+    <string name="label_migration">Migrate</string>
     <string name="label_extensions">Extensions</string>
     <string name="label_extension_info">Extension info</string>
     <string name="label_help">Help</string>
@@ -55,6 +55,8 @@
     <string name="action_delete">Delete</string>
     <string name="action_update">Update</string>
     <string name="action_update_library">Update library</string>
+    <string name="action_enable_all">Enable all</string>
+    <string name="action_disable_all">Disable all</string>
     <string name="action_edit">Edit</string>
     <string name="action_add">Add</string>
     <string name="action_add_category">Add category</string>
@@ -81,10 +83,12 @@
     <string name="action_migrate">Migrate</string>
     <string name="action_display_mode">Display mode</string>
     <string name="action_display">Display</string>
-    <string name="action_display_grid">Grid</string>
+    <string name="action_display_grid">Compact grid</string>
     <string name="action_display_list">List</string>
+    <string name="action_display_comfortable_grid">Comfortable grid</string>
     <string name="action_display_download_badge">Download badges</string>
     <string name="action_display_unread_badge">Unread badges</string>
+    <string name="action_display_show_tabs">Show category tabs</string>
     <string name="action_hide">Hide</string>
     <string name="action_pin">Pin</string>
     <string name="action_unpin">Unpin</string>
@@ -128,14 +132,14 @@
     <string name="pref_category_about">About</string>
 
       <!-- General section -->
-    <string name="pref_theme_mode">App theme</string>
-    <string name="theme_light">Light</string>
-    <string name="theme_dark">Dark</string>
+    <string name="pref_theme_mode">Dark mode</string>
     <string name="theme_system">Follow system</string>
-    <string name="pref_theme_light">Light theme variant</string>
+    <string name="theme_light">Off</string>
+    <string name="theme_dark">On</string>
+    <string name="pref_theme_light">Light theme</string>
     <string name="theme_light_default">Default</string>
     <string name="theme_light_blue">Light blue</string>
-    <string name="pref_theme_dark">Dark theme variant</string>
+    <string name="pref_theme_dark">Dark theme</string>
     <string name="theme_dark_default">Default</string>
     <string name="theme_dark_blue">Dark blue</string>
     <string name="theme_dark_amoled">AMOLED black</string>
@@ -184,6 +188,9 @@
     <string name="wifi">Wi-Fi</string>
     <string name="charging">Charging</string>
     <string name="pref_update_only_non_completed">Only update ongoing manga</string>
+    <string name="pref_library_update_refresh_metadata">Automatically refresh metadata</string>
+    <string name="pref_library_update_refresh_metadata_summary">Check for new cover and details when updating library</string>
+    <string name="pref_library_update_error_notification">Show update errors notifications</string>
 
     <string name="pref_category_library_categories">Categories</string>
     <string name="default_category">Default category</string>
@@ -217,7 +224,7 @@
     <string name="unofficial_extension_message">This extension is not from the official Tachiyomi extensions list.</string>
     <string name="ext_version_info">Version: %1$s</string>
     <string name="ext_language_info">Language: %1$s</string>
-    <string name="ext_empty_preferences">No preferences to edit for this extension</string>
+    <string name="enabled">Enabled</string>
 
       <!-- Reader section -->
     <string name="pref_fullscreen">Fullscreen</string>
@@ -228,6 +235,8 @@
     <string name="pref_optimize_chapter_order">Optimize Chapter Order</string>
     <string name="pref_optimize_chapter_order_summary">Reader will skip duplicate chapters with same scanlator preference</string>
     <string name="pref_show_page_number">Show page number</string>
+    <string name="pref_show_reading_mode">Show reading mode</string>
+    <string name="pref_show_reading_mode_summary">Briefly show current mode when reader is opened</string>
     <string name="pref_true_color">32-bit color</string>
     <string name="pref_true_color_summary">Reduces banding, but impacts performance</string>
     <string name="pref_crop_borders">Crop borders</string>
@@ -353,6 +362,7 @@
     <string name="restoring_backup_canceled">Canceled restore</string>
 
       <!-- Advanced section -->
+    <string name="label_data">Data</string>
     <string name="pref_clear_chapter_cache">Clear chapter cache</string>
     <string name="used_cache">Used: %1$s</string>
     <string name="cache_deleted">Cache cleared. %1$d files have been deleted</string>
@@ -361,7 +371,7 @@
     <string name="cookies_cleared">Cookies cleared</string>
     <string name="choices_reset">Dialog choices reset</string>
     <string name="pref_clear_database">Clear database</string>
-    <string name="pref_clear_database_summary">Delete manga and chapters that are not in your library</string>
+    <string name="pref_clear_database_summary">Delete history for manga that are not saved in your library</string>
     <string name="clear_database_confirmation">Are you sure? Read chapters and progress of non-library manga will be lost</string>
     <string name="clear_database_completed">Entries deleted</string>
     <string name="pref_refresh_library_covers">Refresh library manga covers</string>
@@ -415,6 +425,8 @@
     <string name="local_source_badge">Local</string>
     <string name="confirm_delete_manga">Are you sure you want to remove selected manga?</string>
     <string name="also_delete_chapters">Also delete downloaded chapters</string>
+    <string name="badges_header">Badges</string>
+    <string name="tabs_header">Tabs</string>
 
     <!-- Catalogue fragment -->
     <string name="source_requires_login">This source requires you to log in</string>
@@ -481,6 +493,7 @@
     <string name="sorting_mode">Sorting mode</string>
     <string name="sort_by_source">By source</string>
     <string name="sort_by_number">By chapter number</string>
+    <string name="sort_by_upload_date">By upload date</string>
     <string name="source_order">Use Source Order</string>
     <string name="manga_download">Download</string>
     <string name="custom_download">Download custom amount</string>
@@ -553,6 +566,7 @@
     <string name="transition_no_previous">There\'s no previous chapter</string>
     <string name="transition_pages_loading">Loading pages…</string>
     <string name="transition_pages_error">Failed to load pages: %1$s</string>
+    <string name="page_list_empty_error">No pages found</string>
 
     <!-- Updates fragment -->
     <string name="updating_library">Updating library</string>
@@ -564,7 +578,6 @@
     <string name="migration_info">Tap to select the source to migrate from</string>
     <string name="migration_dialog_what_to_include">Select data to include</string>
     <string name="migration_selection_prompt">Select a source to migrate from</string>
-    <string name="select">Select</string>
     <string name="migrate">Migrate</string>
     <string name="copy">Copy</string>
 

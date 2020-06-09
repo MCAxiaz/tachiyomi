@@ -29,6 +29,7 @@ import eu.kanade.tachiyomi.ui.browse.source.filter.TextSectionItem
 import eu.kanade.tachiyomi.ui.browse.source.filter.TriStateItem
 import eu.kanade.tachiyomi.ui.browse.source.filter.TriStateSectionItem
 import eu.kanade.tachiyomi.util.removeCovers
+import kotlinx.coroutines.flow.subscribe
 import rx.Observable
 import rx.Subscription
 import rx.android.schedulers.AndroidSchedulers
@@ -43,6 +44,7 @@ import uy.kohesive.injekt.api.get
  */
 open class BrowseSourcePresenter(
     private val sourceId: Long,
+    private val searchQuery: String? = null,
     private val sourceManager: SourceManager = Injekt.get(),
     private val db: DatabaseHelper = Injekt.get(),
     private val prefs: PreferencesHelper = Injekt.get(),
@@ -57,7 +59,7 @@ open class BrowseSourcePresenter(
     /**
      * Query from the view.
      */
-    var query = ""
+    var query = searchQuery ?: ""
         private set
 
     /**
@@ -87,12 +89,6 @@ open class BrowseSourcePresenter(
     private val mangaDetailSubject = PublishSubject.create<List<Manga>>()
 
     /**
-     * Whether the view is in list mode or not.
-     */
-    var isListMode: Boolean = false
-        private set
-
-    /**
      * Subscription for the pager.
      */
     private var pagerSubscription: Subscription? = null
@@ -117,11 +113,6 @@ open class BrowseSourcePresenter(
         if (savedState != null) {
             query = savedState.getString(::query.name, "")
         }
-
-        add(
-            prefs.catalogueAsList().asObservable()
-                .subscribe { setDisplayMode(it) }
-        )
 
         restartPager()
     }
@@ -148,7 +139,7 @@ open class BrowseSourcePresenter(
 
         val sourceId = source.id
 
-        val catalogueAsList = prefs.catalogueAsList()
+        val catalogueDisplayMode = prefs.catalogueDisplayMode()
 
         // Prepare the pager.
         pagerSubscription?.let { remove(it) }
@@ -156,7 +147,7 @@ open class BrowseSourcePresenter(
             .observeOn(Schedulers.io())
             .map { pair -> pair.first to pair.second.map { networkToLocalManga(it, sourceId) } }
             .doOnNext { initializeMangas(it.second) }
-            .map { pair -> pair.first to pair.second.map { SourceItem(it, catalogueAsList) } }
+            .map { pair -> pair.first to pair.second.map { SourceItem(it, catalogueDisplayMode) } }
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeReplay(
                 { view, (page, mangas) ->
@@ -192,16 +183,6 @@ open class BrowseSourcePresenter(
      */
     fun hasNextPage(): Boolean {
         return pager.hasNextPage
-    }
-
-    /**
-     * Sets the display mode.
-     *
-     * @param asList whether the current mode is in list or not.
-     */
-    private fun setDisplayMode(asList: Boolean) {
-        isListMode = asList
-        subscribeToMangaInitializer()
     }
 
     /**
@@ -286,10 +267,10 @@ open class BrowseSourcePresenter(
     }
 
     /**
-     * Changes the active display mode.
+     * Refreshes the active display mode.
      */
-    fun swapDisplayMode() {
-        prefs.catalogueAsList().set(!isListMode)
+    fun refreshDisplayMode() {
+        subscribeToMangaInitializer()
     }
 
     /**

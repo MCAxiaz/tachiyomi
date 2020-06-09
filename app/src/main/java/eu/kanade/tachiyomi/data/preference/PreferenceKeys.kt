@@ -23,6 +23,8 @@ object PreferenceKeys {
 
     const val showPageNumber = "pref_show_page_number_key"
 
+    const val showReadingMode = "pref_show_reading_mode"
+
     const val trueColor = "pref_true_color_key"
 
     const val fullscreen = "fullscreen"
@@ -75,7 +77,7 @@ object PreferenceKeys {
 
     const val lastUsedCategory = "last_used_category"
 
-    const val catalogueAsList = "pref_display_catalogue_as_list"
+    const val catalogueDisplayMode = "pref_display_mode_catalogue"
 
     const val enabledLanguages = "source_languages"
 
@@ -125,11 +127,15 @@ object PreferenceKeys {
 
     const val hideNotificationContent = "hide_notification_content"
 
+    const val autoUpdateMetadata = "auto_update_metadata"
+
+    const val showLibraryUpdateErrors = "show_library_update_errors"
+
     const val downloadNew = "download_new"
 
     const val downloadNewCategories = "download_new_categories"
 
-    const val libraryAsList = "pref_display_library_as_list"
+    const val libraryDisplayMode = "pref_display_mode_library"
 
     const val lang = "app_language"
 
@@ -146,6 +152,8 @@ object PreferenceKeys {
     const val downloadBadge = "display_download_badge"
 
     const val unreadBadge = "display_unread_badge"
+
+    const val categoryTabs = "display_category_tabs"
 
     const val alwaysShowChapterTransition = "always_show_chapter_transition"
 

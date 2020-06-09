@@ -12,7 +12,6 @@ import eu.kanade.tachiyomi.ui.base.controller.NoToolbarElevationController
 import eu.kanade.tachiyomi.ui.base.controller.RootController
 import eu.kanade.tachiyomi.ui.base.controller.withFadeTransaction
 import eu.kanade.tachiyomi.ui.download.DownloadController
-import eu.kanade.tachiyomi.ui.migration.MigrationController
 import eu.kanade.tachiyomi.ui.setting.SettingsController
 import eu.kanade.tachiyomi.ui.setting.SettingsMainController
 import eu.kanade.tachiyomi.util.preference.add
@@ -65,14 +64,6 @@ class MoreController :
                 iconTint = tintColor
                 onClick {
                     router.pushController(DownloadController().withFadeTransaction())
-                }
-            }
-            preference {
-                titleRes = R.string.label_migration
-                iconRes = R.drawable.ic_compare_arrows_black_24dp
-                iconTint = tintColor
-                onClick {
-                    router.pushController(MigrationController().withFadeTransaction())
                 }
             }
         }

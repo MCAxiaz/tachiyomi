@@ -5,13 +5,14 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import eu.kanade.tachiyomi.R
+import eu.kanade.tachiyomi.data.preference.PreferenceValues.DisplayMode
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.widget.ExtendedNavigationView
 import eu.kanade.tachiyomi.widget.TabbedBottomSheetDialog
 import uy.kohesive.injekt.injectLazy
 
 class LibrarySettingsSheet(
-    private val activity: Activity,
+    activity: Activity,
     onGroupClickListener: (ExtendedNavigationView.Group) -> Unit
 ) : TabbedBottomSheetDialog(activity) {
 
@@ -177,22 +178,24 @@ class LibrarySettingsSheet(
         Settings(context, attrs) {
 
         init {
-            setGroups(listOf(DisplayGroup(), BadgeGroup()))
+            setGroups(listOf(DisplayGroup(), BadgeGroup(), TabsGroup()))
         }
 
         inner class DisplayGroup : Group {
 
-            private val grid = Item.Radio(R.string.action_display_grid, this)
+            private val compactGrid = Item.Radio(R.string.action_display_grid, this)
+            private val comfortableGrid = Item.Radio(R.string.action_display_comfortable_grid, this)
             private val list = Item.Radio(R.string.action_display_list, this)
 
-            override val header = null
-            override val items = listOf(grid, list)
+            override val header = Item.Header(R.string.action_display_mode)
+            override val items = listOf(compactGrid, comfortableGrid, list)
             override val footer = null
 
             override fun initModels() {
-                val asList = preferences.libraryAsList().get()
-                grid.checked = !asList
-                list.checked = asList
+                val mode = preferences.libraryDisplayMode().get()
+                compactGrid.checked = mode == DisplayMode.COMPACT_GRID
+                comfortableGrid.checked = mode == DisplayMode.COMFORTABLE_GRID
+                list.checked = mode == DisplayMode.LIST
             }
 
             override fun onItemClicked(item: Item) {
@@ -202,7 +205,14 @@ class LibrarySettingsSheet(
                 item.group.items.forEach { (it as Item.Radio).checked = false }
                 item.checked = true
 
-                preferences.libraryAsList().set(item == list)
+                preferences.libraryDisplayMode().set(
+                    when (item) {
+                        compactGrid -> DisplayMode.COMPACT_GRID
+                        comfortableGrid -> DisplayMode.COMFORTABLE_GRID
+                        list -> DisplayMode.LIST
+                        else -> throw NotImplementedError("Unknown display mode")
+                    }
+                )
 
                 item.group.items.forEach { adapter.notifyItemChanged(it) }
             }
@@ -212,7 +222,7 @@ class LibrarySettingsSheet(
             private val downloadBadge = Item.CheckboxGroup(R.string.action_display_download_badge, this)
             private val unreadBadge = Item.CheckboxGroup(R.string.action_display_unread_badge, this)
 
-            override val header = null
+            override val header = Item.Header(R.string.badges_header)
             override val items = listOf(downloadBadge, unreadBadge)
             override val footer = null
 
@@ -227,6 +237,27 @@ class LibrarySettingsSheet(
                 when (item) {
                     downloadBadge -> preferences.downloadBadge().set((item.checked))
                     unreadBadge -> preferences.unreadBadge().set((item.checked))
+                }
+                adapter.notifyItemChanged(item)
+            }
+        }
+
+        inner class TabsGroup : Group {
+            private val showTabs = Item.CheckboxGroup(R.string.action_display_show_tabs, this)
+
+            override val header = Item.Header(R.string.tabs_header)
+            override val items = listOf(showTabs)
+            override val footer = null
+
+            override fun initModels() {
+                showTabs.checked = preferences.categoryTabs().get()
+            }
+
+            override fun onItemClicked(item: Item) {
+                item as Item.CheckboxGroup
+                item.checked = !item.checked
+                when (item) {
+                    showTabs -> preferences.categoryTabs().set((item.checked))
                 }
                 adapter.notifyItemChanged(item)
             }
