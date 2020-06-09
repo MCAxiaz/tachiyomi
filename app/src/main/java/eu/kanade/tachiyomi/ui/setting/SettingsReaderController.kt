@@ -29,7 +29,7 @@ class SettingsReaderController : SettingsController() {
                     R.string.vertical_viewer, R.string.webtoon_viewer, R.string.vertical_plus_viewer
                 )
                 entryValues = arrayOf("1", "2", "3", "4", "5")
-                defaultValue = "1"
+                defaultValue = "2"
                 summary = "%s"
             }
             intListPreference {
@@ -81,6 +81,12 @@ class SettingsReaderController : SettingsController() {
             switchPreference {
                 key = Keys.showPageNumber
                 titleRes = R.string.pref_show_page_number
+                defaultValue = true
+            }
+            switchPreference {
+                key = Keys.showReadingMode
+                titleRes = R.string.pref_show_reading_mode
+                summaryRes = R.string.pref_show_reading_mode_summary
                 defaultValue = true
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

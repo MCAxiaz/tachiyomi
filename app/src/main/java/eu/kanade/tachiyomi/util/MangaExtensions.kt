@@ -17,6 +17,9 @@ fun Manga.prepUpdateCover(coverCache: CoverCache, remoteManga: SManga, refreshSa
     // Never refresh covers if the new url is null, as the current url has possibly become invalid
     val newUrl = remoteManga.thumbnail_url ?: return
 
+    // Never refresh covers if the url is empty to avoid "losing" existing covers
+    if (newUrl.isEmpty()) return
+
     if (!refreshSameUrl && thumbnail_url == newUrl) return
 
     when {
@@ -50,6 +53,8 @@ fun Manga.updateCoverLastModified(db: DatabaseHelper) {
 }
 
 fun Manga.shouldDownloadNewChapters(db: DatabaseHelper, prefs: PreferencesHelper): Boolean {
+    if (!favorite) return false
+
     // Boolean to determine if user wants to automatically download new chapters.
     val downloadNew = prefs.downloadNew().get()
     if (!downloadNew) return false
@@ -57,7 +62,11 @@ fun Manga.shouldDownloadNewChapters(db: DatabaseHelper, prefs: PreferencesHelper
     val categoriesToDownload = prefs.downloadNewCategories().get().map(String::toInt)
     if (categoriesToDownload.isEmpty()) return true
 
-    val categoriesForManga = db.getCategoriesForManga(this).executeAsBlocking().mapNotNull { it.id }
+    // Get all categories, else default category (0)
+    val categoriesForManga =
+        db.getCategoriesForManga(this).executeAsBlocking()
+            .mapNotNull { it.id }
+            .takeUnless { it.isEmpty() } ?: listOf(0)
 
     return categoriesForManga.intersect(categoriesToDownload).isNotEmpty()
 }

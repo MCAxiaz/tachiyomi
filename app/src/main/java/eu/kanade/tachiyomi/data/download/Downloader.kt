@@ -5,6 +5,7 @@ import android.webkit.MimeTypeMap
 import com.hippo.unifile.UniFile
 import com.jakewharton.rxrelay.BehaviorRelay
 import com.jakewharton.rxrelay.PublishRelay
+import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.cache.ChapterCache
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
@@ -191,7 +192,7 @@ class Downloader(
                 },
                 5
             )
-            .onBackpressureBuffer()
+            .onBackpressureLatest()
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
                 {
@@ -276,7 +277,7 @@ class Downloader(
             download.source.fetchPageList(download.chapter)
                 .doOnNext { pages ->
                     if (pages.isEmpty()) {
-                        throw Exception("Page list is empty")
+                        throw Exception(context.getString(R.string.page_list_empty_error))
                     }
                     download.pages = pages
                 }
@@ -300,6 +301,7 @@ class Downloader(
             // Start downloading images, consider we can have downloaded images already
             // Concurrently do 5 pages at a time
             .flatMap({ page -> getOrDownloadImage(page, download, tmpDir) }, 5)
+            .onBackpressureLatest()
             // Do when page is downloaded.
             .doOnNext { notifier.onProgressChange(download) }
             .toList()

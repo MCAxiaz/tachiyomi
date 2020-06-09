@@ -112,7 +112,6 @@ open class ExtensionController :
                     ExtensionFilterController().withFadeTransaction()
                 )
             }
-            else -> return super.onOptionsItemSelected(item)
         }
         return super.onOptionsItemSelected(item)
     }

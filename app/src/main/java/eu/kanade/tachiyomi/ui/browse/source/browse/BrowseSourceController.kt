@@ -15,14 +15,16 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.list.listItems
-import com.f2prateek.rx.preferences.Preference
 import com.google.android.material.snackbar.Snackbar
+import com.tfcporciuncula.flow.Preference
 import eu.davidea.flexibleadapter.FlexibleAdapter
 import eu.davidea.flexibleadapter.items.IFlexible
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Category
 import eu.kanade.tachiyomi.data.database.models.Manga
+import eu.kanade.tachiyomi.data.preference.PreferenceValues.DisplayMode
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
+import eu.kanade.tachiyomi.data.preference.asImmediateFlow
 import eu.kanade.tachiyomi.databinding.SourceControllerBinding
 import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.LocalSource
@@ -44,13 +46,14 @@ import eu.kanade.tachiyomi.util.view.snack
 import eu.kanade.tachiyomi.util.view.visible
 import eu.kanade.tachiyomi.widget.AutofitRecyclerView
 import eu.kanade.tachiyomi.widget.EmptyView
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import reactivecircus.flowbinding.appcompat.QueryTextEvent
 import reactivecircus.flowbinding.appcompat.queryTextEvents
-import rx.Subscription
 import timber.log.Timber
 import uy.kohesive.injekt.injectLazy
 
@@ -64,9 +67,13 @@ open class BrowseSourceController(bundle: Bundle) :
     FlexibleAdapter.EndlessScrollListener,
     ChangeMangaCategoriesDialog.Listener {
 
-    constructor(source: CatalogueSource) : this(
+    constructor(source: CatalogueSource, searchQuery: String? = null) : this(
         Bundle().apply {
             putLong(SOURCE_ID_KEY, source.id)
+
+            if (searchQuery != null) {
+                putString(SEARCH_QUERY_KEY, searchQuery)
+            }
         }
     )
 
@@ -95,7 +102,7 @@ open class BrowseSourceController(bundle: Bundle) :
     /**
      * Subscription for the number of manga per row.
      */
-    private var numColumnsSubscription: Subscription? = null
+    private var numColumnsJob: Job? = null
 
     /**
      * Endless loading item.
@@ -111,7 +118,7 @@ open class BrowseSourceController(bundle: Bundle) :
     }
 
     override fun createPresenter(): BrowseSourcePresenter {
-        return BrowseSourcePresenter(args.getLong(SOURCE_ID_KEY))
+        return BrowseSourcePresenter(args.getLong(SOURCE_ID_KEY), args.getString(SEARCH_QUERY_KEY))
     }
 
     override fun inflateView(inflater: LayoutInflater, container: ViewGroup): View {
@@ -165,8 +172,8 @@ open class BrowseSourceController(bundle: Bundle) :
     }
 
     override fun onDestroyView(view: View) {
-        numColumnsSubscription?.unsubscribe()
-        numColumnsSubscription = null
+        numColumnsJob?.cancel()
+        numColumnsJob = null
         adapter = null
         snack = null
         recycler = null
@@ -174,7 +181,7 @@ open class BrowseSourceController(bundle: Bundle) :
     }
 
     private fun setupRecycler(view: View) {
-        numColumnsSubscription?.unsubscribe()
+        numColumnsJob?.cancel()
 
         var oldPosition = RecyclerView.NO_POSITION
         val oldRecycler = binding.catalogueView.getChildAt(1)
@@ -185,7 +192,7 @@ open class BrowseSourceController(bundle: Bundle) :
             binding.catalogueView.removeView(oldRecycler)
         }
 
-        val recycler = if (presenter.isListMode) {
+        val recycler = if (preferences.catalogueDisplayMode().get() == DisplayMode.LIST) {
             RecyclerView(view.context).apply {
                 id = R.id.recycler
                 layoutManager = LinearLayoutManager(context)
@@ -194,16 +201,16 @@ open class BrowseSourceController(bundle: Bundle) :
             }
         } else {
             (binding.catalogueView.inflate(R.layout.source_recycler_autofit) as AutofitRecyclerView).apply {
-                numColumnsSubscription = getColumnsPreferenceForCurrentOrientation().asObservable()
-                    .doOnNext { spanCount = it }
-                    .skip(1)
+                numColumnsJob = getColumnsPreferenceForCurrentOrientation().asImmediateFlow { spanCount = it }
+                    .drop(1)
                     // Set again the adapter to recalculate the covers height
-                    .subscribe { adapter = this@BrowseSourceController.adapter }
+                    .onEach { adapter = this@BrowseSourceController.adapter }
+                    .launchIn(scope)
 
                 (layoutManager as GridLayoutManager).spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
                     override fun getSpanSize(position: Int): Int {
                         return when (adapter?.getItemViewType(position)) {
-                            R.layout.source_grid_item, null -> 1
+                            R.layout.source_compact_grid_item, R.layout.source_comfortable_grid_item, null -> 1
                             else -> spanCount
                         }
                     }
@@ -264,15 +271,12 @@ open class BrowseSourceController(bundle: Bundle) :
             }
         )
 
-        // Show next display mode
-        menu.findItem(R.id.action_display_mode).apply {
-            val icon = if (presenter.isListMode) {
-                R.drawable.ic_view_module_24dp
-            } else {
-                R.drawable.ic_view_list_24dp
-            }
-            setIcon(icon)
+        val displayItem = when (preferences.catalogueDisplayMode().get()) {
+            DisplayMode.COMPACT_GRID -> R.id.action_compact_grid
+            DisplayMode.COMFORTABLE_GRID -> R.id.action_comfortable_grid
+            DisplayMode.LIST -> R.id.action_list
         }
+        menu.findItem(displayItem).isChecked = true
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {
@@ -288,7 +292,9 @@ open class BrowseSourceController(bundle: Bundle) :
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.action_search -> expandActionViewFromInteraction = true
-            R.id.action_display_mode -> swapDisplayMode()
+            R.id.action_compact_grid -> setDisplayMode(DisplayMode.COMPACT_GRID)
+            R.id.action_comfortable_grid -> setDisplayMode(DisplayMode.COMFORTABLE_GRID)
+            R.id.action_list -> setDisplayMode(DisplayMode.LIST)
             R.id.action_open_in_web_view -> openInWebView()
             R.id.action_local_source_help -> openLocalSourceHelpGuide()
         }
@@ -431,17 +437,19 @@ open class BrowseSourceController(bundle: Bundle) :
     }
 
     /**
-     * Swaps the current display mode.
+     * Sets the current display mode.
+     *
+     * @param mode the mode to change to
      */
-    fun swapDisplayMode() {
+    private fun setDisplayMode(mode: DisplayMode) {
         val view = view ?: return
         val adapter = adapter ?: return
 
-        presenter.swapDisplayMode()
-        val isListMode = presenter.isListMode
+        preferences.catalogueDisplayMode().set(mode)
+        presenter.refreshDisplayMode()
         activity?.invalidateOptionsMenu()
         setupRecycler(view)
-        if (!isListMode || !view.context.connectivityManager.isActiveNetworkMetered) {
+        if (mode == DisplayMode.LIST || !view.context.connectivityManager.isActiveNetworkMetered) {
             // Initialize mangas if going to grid view or if over wifi when going to list view
             val mangas = (0 until adapter.itemCount).mapNotNull {
                 (adapter.getItem(it) as? SourceItem)?.manga
@@ -600,5 +608,6 @@ open class BrowseSourceController(bundle: Bundle) :
 
     protected companion object {
         const val SOURCE_ID_KEY = "sourceId"
+        const val SEARCH_QUERY_KEY = "searchQuery"
     }
 }

@@ -16,16 +16,17 @@ import androidx.appcompat.widget.SearchView
 import androidx.core.graphics.drawable.DrawableCompat
 import com.bluelinelabs.conductor.ControllerChangeHandler
 import com.bluelinelabs.conductor.ControllerChangeType
-import com.f2prateek.rx.preferences.Preference
 import com.google.android.material.tabs.TabLayout
 import com.jakewharton.rxrelay.BehaviorRelay
 import com.jakewharton.rxrelay.PublishRelay
+import com.tfcporciuncula.flow.Preference
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.database.models.Category
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.library.LibraryUpdateService
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
+import eu.kanade.tachiyomi.data.preference.asImmediateFlow
 import eu.kanade.tachiyomi.databinding.LibraryControllerBinding
 import eu.kanade.tachiyomi.ui.base.controller.NucleusController
 import eu.kanade.tachiyomi.ui.base.controller.RootController
@@ -39,6 +40,7 @@ import eu.kanade.tachiyomi.util.system.getResourceColor
 import eu.kanade.tachiyomi.util.system.toast
 import eu.kanade.tachiyomi.util.view.visible
 import kotlinx.android.synthetic.main.main_activity.tabs
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -133,8 +135,26 @@ class LibraryController(
         retainViewMode = RetainViewMode.RETAIN_DETACH
     }
 
+    private var title: String? = null
+        set(value) {
+            if (field != value) {
+                field = value
+                setTitle()
+            }
+        }
+
     override fun getTitle(): String? {
-        return resources?.getString(R.string.label_library)
+        return title ?: resources?.getString(R.string.label_library)
+    }
+
+    private fun updateTitle() {
+        if (preferences.categoryTabs().get()) {
+            title = resources?.getString(R.string.label_library)
+        } else {
+            adapter?.categories?.get(binding.libraryPager.currentItem)?.let {
+                title = it.first.name
+            }
+        }
     }
 
     override fun createPresenter(): LibraryPresenter {
@@ -155,14 +175,15 @@ class LibraryController(
             .onEach {
                 preferences.lastUsedCategory().set(it)
                 activeCategory = it
+                updateTitle()
             }
             .launchIn(scope)
 
-        getColumnsPreferenceForCurrentOrientation().asObservable()
-            .doOnNext { mangaPerRow = it }
-            .skip(1)
+        getColumnsPreferenceForCurrentOrientation().asImmediateFlow { mangaPerRow = it }
+            .drop(1)
             // Set again the adapter to recalculate the covers height
-            .subscribeUntilDestroy { reattachAdapter() }
+            .onEach { reattachAdapter() }
+            .launchIn(scope)
 
         if (selectedMangas.isNotEmpty()) {
             createActionModeIfNeeded()
@@ -173,7 +194,8 @@ class LibraryController(
                 is LibrarySettingsSheet.Filter.FilterGroup -> onFilterChanged()
                 is LibrarySettingsSheet.Sort.SortGroup -> onSortChanged()
                 is LibrarySettingsSheet.Display.DisplayGroup -> reattachAdapter()
-                is LibrarySettingsSheet.Display.BadgeGroup -> onBadgeChanged()
+                is LibrarySettingsSheet.Display.BadgeGroup -> onBadgeSettingChanged()
+                is LibrarySettingsSheet.Display.TabsGroup -> onTabsSettingsChanged()
             }
         }
 
@@ -255,7 +277,8 @@ class LibraryController(
         // Restore active category.
         binding.libraryPager.setCurrentItem(activeCat, false)
 
-        tabsVisibilityRelay.call(categories.size > 1)
+        // Trigger display of tabs
+        onTabsSettingsChanged()
 
         // Delay the scroll position to allow the view to be properly measured.
         view.post {
@@ -281,16 +304,18 @@ class LibraryController(
         }
     }
 
-    /**
-     * Called when a filter is changed.
-     */
     private fun onFilterChanged() {
         presenter.requestFilterUpdate()
         activity?.invalidateOptionsMenu()
     }
 
-    private fun onBadgeChanged() {
+    private fun onBadgeSettingChanged() {
         presenter.requestBadgesUpdate()
+    }
+
+    private fun onTabsSettingsChanged() {
+        tabsVisibilityRelay.call(preferences.categoryTabs().get() && adapter?.categories?.size ?: 0 > 1)
+        updateTitle()
     }
 
     /**

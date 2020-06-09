@@ -7,10 +7,10 @@ import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.glide.GlideApp
 import eu.kanade.tachiyomi.data.glide.toMangaThumbnail
 import eu.kanade.tachiyomi.widget.StateImageViewTarget
-import kotlinx.android.synthetic.main.source_grid_item.card
-import kotlinx.android.synthetic.main.source_grid_item.progress
-import kotlinx.android.synthetic.main.source_grid_item.thumbnail
-import kotlinx.android.synthetic.main.source_grid_item.title
+import kotlinx.android.synthetic.main.source_compact_grid_item.card
+import kotlinx.android.synthetic.main.source_compact_grid_item.progress
+import kotlinx.android.synthetic.main.source_compact_grid_item.thumbnail
+import kotlinx.android.synthetic.main.source_compact_grid_item.title
 
 /**
  * Class used to hold the displayed data of a manga in the catalogue, like the cover or the title.
@@ -20,7 +20,7 @@ import kotlinx.android.synthetic.main.source_grid_item.title
  * @param adapter the adapter handling this holder.
  * @constructor creates a new catalogue holder.
  */
-class SourceGridHolder(private val view: View, private val adapter: FlexibleAdapter<*>) :
+open class SourceGridHolder(private val view: View, private val adapter: FlexibleAdapter<*>) :
     SourceHolder(view, adapter) {
 
     /**

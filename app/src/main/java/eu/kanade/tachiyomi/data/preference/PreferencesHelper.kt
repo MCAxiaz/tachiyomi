@@ -4,13 +4,12 @@ import android.content.Context
 import android.net.Uri
 import android.os.Environment
 import androidx.preference.PreferenceManager
-import com.f2prateek.rx.preferences.Preference as RxPreference
-import com.f2prateek.rx.preferences.RxSharedPreferences
 import com.tfcporciuncula.flow.FlowSharedPreferences
 import com.tfcporciuncula.flow.Preference
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.preference.PreferenceKeys as Keys
 import eu.kanade.tachiyomi.data.preference.PreferenceValues as Values
+import eu.kanade.tachiyomi.data.preference.PreferenceValues.DisplayMode
 import eu.kanade.tachiyomi.data.track.TrackService
 import eu.kanade.tachiyomi.data.track.anilist.Anilist
 import java.io.File
@@ -20,8 +19,6 @@ import java.util.Locale
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.onEach
-
-fun <T> RxPreference<T>.getOrDefault(): T = get() ?: defaultValue()!!
 
 @OptIn(ExperimentalCoroutinesApi::class)
 fun <T> Preference<T>.asImmediateFlow(block: (value: T) -> Unit): Flow<T> {
@@ -34,7 +31,6 @@ fun <T> Preference<T>.asImmediateFlow(block: (value: T) -> Unit): Flow<T> {
 class PreferencesHelper(val context: Context) {
 
     private val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-    private val rxPrefs = RxSharedPreferences.create(prefs)
     private val flowPrefs = FlowSharedPreferences(prefs)
 
     private val defaultDownloadsDir = Uri.fromFile(
@@ -67,13 +63,17 @@ class PreferencesHelper(val context: Context) {
 
     fun hideNotificationContent() = prefs.getBoolean(Keys.hideNotificationContent, false)
 
+    fun autoUpdateMetadata() = prefs.getBoolean(Keys.autoUpdateMetadata, false)
+
+    fun showLibraryUpdateErrors() = prefs.getBoolean(Keys.showLibraryUpdateErrors, false)
+
     fun clear() = prefs.edit().clear().apply()
 
-    fun themeMode() = flowPrefs.getString(Keys.themeMode, Values.THEME_MODE_SYSTEM)
+    fun themeMode() = flowPrefs.getEnum(Keys.themeMode, Values.ThemeMode.system)
 
-    fun themeLight() = flowPrefs.getString(Keys.themeLight, Values.THEME_LIGHT_DEFAULT)
+    fun themeLight() = flowPrefs.getEnum(Keys.themeLight, Values.LightThemeVariant.default)
 
-    fun themeDark() = flowPrefs.getString(Keys.themeDark, Values.THEME_DARK_DEFAULT)
+    fun themeDark() = flowPrefs.getEnum(Keys.themeDark, Values.DarkThemeVariant.default)
 
     fun rotation() = flowPrefs.getInt(Keys.rotation, 1)
 
@@ -84,6 +84,8 @@ class PreferencesHelper(val context: Context) {
     fun optimizeChapterOrder() = prefs.getBoolean(Keys.optimizeChapterOrder, true)
 
     fun showPageNumber() = flowPrefs.getBoolean(Keys.showPageNumber, true)
+
+    fun showReadingMode() = prefs.getBoolean(Keys.showReadingMode, true)
 
     fun trueColor() = flowPrefs.getBoolean(Keys.trueColor, false)
 
@@ -103,7 +105,7 @@ class PreferencesHelper(val context: Context) {
 
     fun colorFilterMode() = flowPrefs.getInt(Keys.colorFilterMode, 0)
 
-    fun defaultViewer() = prefs.getInt(Keys.defaultViewer, 1)
+    fun defaultViewer() = prefs.getInt(Keys.defaultViewer, 2)
 
     fun imageScaleType() = flowPrefs.getInt(Keys.imageScaleType, 1)
 
@@ -127,21 +129,21 @@ class PreferencesHelper(val context: Context) {
 
     fun readWithVolumeKeysInverted() = flowPrefs.getBoolean(Keys.readWithVolumeKeysInverted, false)
 
-    fun portraitColumns() = rxPrefs.getInteger(Keys.portraitColumns, 0)
+    fun portraitColumns() = flowPrefs.getInt(Keys.portraitColumns, 0)
 
-    fun landscapeColumns() = rxPrefs.getInteger(Keys.landscapeColumns, 0)
+    fun landscapeColumns() = flowPrefs.getInt(Keys.landscapeColumns, 0)
 
     fun updateOnlyNonCompleted() = prefs.getBoolean(Keys.updateOnlyNonCompleted, false)
 
     fun autoUpdateTrack() = prefs.getBoolean(Keys.autoUpdateTrack, true)
 
-    fun lastUsedCatalogueSource() = rxPrefs.getLong(Keys.lastUsedCatalogueSource, -1)
+    fun lastUsedCatalogueSource() = flowPrefs.getLong(Keys.lastUsedCatalogueSource, -1)
 
     fun lastUsedCategory() = flowPrefs.getInt(Keys.lastUsedCategory, 0)
 
     fun lastVersionCode() = flowPrefs.getInt("last_version_code", 0)
 
-    fun catalogueAsList() = rxPrefs.getBoolean(Keys.catalogueAsList, false)
+    fun catalogueDisplayMode() = flowPrefs.getEnum(Keys.catalogueDisplayMode, DisplayMode.COMPACT_GRID)
 
     fun enabledLanguages() = flowPrefs.getStringSet(Keys.enabledLanguages, setOf("en", Locale.getDefault().language))
 
@@ -187,13 +189,15 @@ class PreferencesHelper(val context: Context) {
 
     fun libraryUpdatePrioritization() = flowPrefs.getInt(Keys.libraryUpdatePrioritization, 0)
 
-    fun libraryAsList() = flowPrefs.getBoolean(Keys.libraryAsList, false)
+    fun libraryDisplayMode() = flowPrefs.getEnum(Keys.libraryDisplayMode, DisplayMode.COMPACT_GRID)
 
     fun downloadBadge() = flowPrefs.getBoolean(Keys.downloadBadge, false)
 
     fun downloadedOnly() = flowPrefs.getBoolean(Keys.downloadedOnly, false)
 
     fun unreadBadge() = flowPrefs.getBoolean(Keys.unreadBadge, true)
+
+    fun categoryTabs() = flowPrefs.getBoolean(Keys.categoryTabs, true)
 
     fun filterDownloaded() = flowPrefs.getBoolean(Keys.filterDownloaded, false)
 

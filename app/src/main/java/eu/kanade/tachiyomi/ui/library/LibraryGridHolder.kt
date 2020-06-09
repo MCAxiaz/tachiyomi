@@ -7,12 +7,12 @@ import eu.kanade.tachiyomi.data.glide.GlideApp
 import eu.kanade.tachiyomi.data.glide.toMangaThumbnail
 import eu.kanade.tachiyomi.util.isLocal
 import eu.kanade.tachiyomi.util.view.visibleIf
-import kotlinx.android.synthetic.main.source_grid_item.card
-import kotlinx.android.synthetic.main.source_grid_item.download_text
-import kotlinx.android.synthetic.main.source_grid_item.local_text
-import kotlinx.android.synthetic.main.source_grid_item.thumbnail
-import kotlinx.android.synthetic.main.source_grid_item.title
-import kotlinx.android.synthetic.main.source_grid_item.unread_text
+import kotlinx.android.synthetic.main.source_compact_grid_item.card
+import kotlinx.android.synthetic.main.source_compact_grid_item.download_text
+import kotlinx.android.synthetic.main.source_compact_grid_item.local_text
+import kotlinx.android.synthetic.main.source_compact_grid_item.thumbnail
+import kotlinx.android.synthetic.main.source_compact_grid_item.title
+import kotlinx.android.synthetic.main.source_compact_grid_item.unread_text
 
 /**
  * Class used to hold the displayed data of a manga in the library, like the cover or the title.
@@ -23,7 +23,7 @@ import kotlinx.android.synthetic.main.source_grid_item.unread_text
  * @param listener a listener to react to single tap and long tap events.
  * @constructor creates a new library holder.
  */
-class LibraryGridHolder(
+open class LibraryGridHolder(
     private val view: View,
     private val adapter: FlexibleAdapter<*>
 ) : LibraryHolder(view, adapter) {
