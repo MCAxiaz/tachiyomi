@@ -76,10 +76,12 @@
     <string name="action_next_chapter">Next chapter</string>
     <string name="action_retry">Retry</string>
     <string name="action_remove">Remove</string>
+    <string name="action_start">Start</string>
     <string name="action_resume">Resume</string>
     <string name="action_move">Move</string>
     <string name="action_open_in_browser">Open in browser</string>
     <string name="action_open_in_web_view">Open in WebView</string>
+    <string name="action_open_in_settings">Open in Settings</string>
     <string name="action_migrate">Migrate</string>
     <string name="action_display_mode">Display mode</string>
     <string name="action_display">Display</string>
@@ -89,7 +91,7 @@
     <string name="action_display_download_badge">Download badges</string>
     <string name="action_display_unread_badge">Unread badges</string>
     <string name="action_display_show_tabs">Show category tabs</string>
-    <string name="action_hide">Hide</string>
+    <string name="action_disable">Disable</string>
     <string name="action_pin">Pin</string>
     <string name="action_unpin">Unpin</string>
     <string name="action_cancel">Cancel</string>
@@ -204,7 +206,6 @@
 
       <!-- Extension section -->
     <string name="all_lang">All</string>
-    <string name="ext_details">Details</string>
     <string name="ext_updates_pending">Updates pending</string>
     <string name="ext_update">Update</string>
     <string name="ext_obsolete">Obsolete</string>
@@ -224,7 +225,6 @@
     <string name="unofficial_extension_message">This extension is not from the official Tachiyomi extensions list.</string>
     <string name="ext_version_info">Version: %1$s</string>
     <string name="ext_language_info">Language: %1$s</string>
-    <string name="enabled">Enabled</string>
 
       <!-- Reader section -->
     <string name="pref_fullscreen">Fullscreen</string>
@@ -567,6 +567,7 @@
     <string name="transition_pages_loading">Loading pages…</string>
     <string name="transition_pages_error">Failed to load pages: %1$s</string>
     <string name="page_list_empty_error">No pages found</string>
+    <string name="loader_not_implemented_error">Source not found</string>
 
     <!-- Updates fragment -->
     <string name="updating_library">Updating library</string>
@@ -646,8 +647,8 @@
     <string name="information_no_downloads">No downloads</string>
     <string name="information_no_recent">No recent updates</string>
     <string name="information_no_recent_manga">Nothing read recently</string>
-    <string name="information_empty_library">Your library is empty, add series to your library from Browse.</string>
-    <string name="information_empty_category">You have no categories. Hit the plus button to create one for organizing your library.</string>
+    <string name="information_empty_library">Your library is empty. Add series to your library from Browse.</string>
+    <string name="information_empty_category">You have no categories. Tap the plus button to create one for organizing your library.</string>
     <string name="information_cloudflare_bypass_failure">Failed to bypass Cloudflare</string>
     <string name="information_webview_required">WebView is required for Tachiyomi</string>
     <string name="information_webview_outdated">Please update the WebView app for better compatibility</string>

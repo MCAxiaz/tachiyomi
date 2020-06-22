@@ -9,8 +9,10 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import androidx.core.graphics.ColorUtils
+import androidx.webkit.WebViewClientCompat
 import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.databinding.WebviewActivityBinding
@@ -18,7 +20,6 @@ import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.ui.base.activity.BaseActivity
 import eu.kanade.tachiyomi.ui.main.ForceCloseActivity
-import eu.kanade.tachiyomi.util.system.WebViewClientCompat
 import eu.kanade.tachiyomi.util.system.getResourceColor
 import eu.kanade.tachiyomi.util.system.openInBrowser
 import eu.kanade.tachiyomi.util.system.toast
@@ -78,6 +79,7 @@ class WebViewActivity : BaseActivity<WebviewActivityBinding>() {
             }
 
             binding.webview.settings.javaScriptEnabled = true
+            binding.webview.settings.domStorageEnabled = true
 
             binding.webview.webChromeClient = object : WebChromeClient() {
                 override fun onProgressChanged(view: WebView?, newProgress: Int) {
@@ -91,8 +93,8 @@ class WebViewActivity : BaseActivity<WebviewActivityBinding>() {
             }
 
             binding.webview.webViewClient = object : WebViewClientCompat() {
-                override fun shouldOverrideUrlCompat(view: WebView, url: String): Boolean {
-                    view.loadUrl(url)
+                override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+                    view.loadUrl(request.url.toString())
                     return true
                 }
 
@@ -110,7 +112,7 @@ class WebViewActivity : BaseActivity<WebviewActivityBinding>() {
                     invalidateOptionsMenu()
                 }
 
-                override fun onPageCommitVisible(view: WebView?, url: String?) {
+                override fun onPageCommitVisible(view: WebView, url: String) {
                     super.onPageCommitVisible(view, url)
 
                     // Reset to top when page refreshes
