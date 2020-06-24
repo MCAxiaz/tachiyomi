@@ -5,8 +5,10 @@ import eu.kanade.tachiyomi.data.database.DatabaseHelper
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
+import eu.kanade.tachiyomi.data.track.Change
 import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.data.track.TrackService
+import eu.kanade.tachiyomi.data.track.setAutoComplete
 import eu.kanade.tachiyomi.ui.base.presenter.BasePresenter
 import eu.kanade.tachiyomi.util.system.toast
 import rx.Observable
@@ -125,9 +127,8 @@ class TrackPresenter(
     fun setStatus(item: TrackItem, index: Int) {
         val track = item.track!!
         track.status = item.service.getStatusList()[index]
-        if (track.status == item.service.getCompletionStatus() && track.total_chapters != 0) {
-            track.last_chapter_read = track.total_chapters
-        }
+        item.setAutoComplete(Change.STATUS)
+
         updateRemote(track, item.service)
     }
 
@@ -140,9 +141,8 @@ class TrackPresenter(
     fun setLastChapterRead(item: TrackItem, chapterNumber: Int) {
         val track = item.track!!
         track.last_chapter_read = chapterNumber
-        if (track.total_chapters != 0 && track.last_chapter_read == track.total_chapters) {
-            track.status = item.service.getCompletionStatus()
-        }
+        item.setAutoComplete(Change.CHAPTER)
+
         updateRemote(track, item.service)
     }
 
