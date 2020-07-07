@@ -2,6 +2,7 @@ package eu.kanade.tachiyomi.ui.manga.info
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.drawable.Drawable
 import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.Menu
@@ -10,7 +11,11 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
+import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Category
 import eu.kanade.tachiyomi.data.database.models.Manga
@@ -275,21 +280,34 @@ class MangaInfoController(private val fromSource: Boolean = false) :
         // Set cover if it wasn't already.
         val mangaThumbnail = manga.toMangaThumbnail()
 
-        GlideApp.with(view.context)
-            .load(mangaThumbnail)
-            .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-            .centerCrop()
-            .into(binding.mangaCover)
+        // Preload the thumbnail to avoid concurrency issues when the two views write to the same cover cache file
+        GlideApp.with(view.context).load(mangaThumbnail)
+            .addListener(object : RequestListener<Drawable> {
+                override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>?, isFirstResource: Boolean): Boolean {
+                    return false
+                }
 
-        binding.backdrop?.let {
-            it.post {
-                GlideApp.with(view.context)
-                    .load(mangaThumbnail)
-                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                    .centerCrop()
-                    .into(it)
-            }
-        }
+                override fun onResourceReady(resource: Drawable?, model: Any?, target: Target<Drawable>?, dataSource: DataSource?, isFirstResource: Boolean): Boolean {
+                    GlideApp.with(view.context)
+                        .load(mangaThumbnail)
+                        .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                        .centerCrop()
+                        .into(binding.mangaCover)
+
+                    binding.backdrop?.let {
+                        it.post {
+                            GlideApp.with(view.context)
+                                .load(mangaThumbnail)
+                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                                .centerCrop()
+                                .into(it)
+                        }
+                    }
+
+                    return false
+                }
+            })
+            .preload()
 
         // Manga info section
         if (manga.description.isNullOrBlank() && manga.genre.isNullOrBlank()) {
