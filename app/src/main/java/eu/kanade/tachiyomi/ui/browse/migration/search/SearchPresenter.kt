@@ -7,7 +7,6 @@ import eu.kanade.tachiyomi.data.database.models.MangaCategory
 import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.model.SChapter
-import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.ui.browse.migration.MigrationFlags
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchCardItem
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchItem
@@ -39,13 +38,6 @@ class SearchPresenter(
     override fun createCatalogueSearchItem(source: CatalogueSource, results: List<GlobalSearchCardItem>?): GlobalSearchItem {
         // Set the catalogue search item as highlighted if the source matches that of the selected manga
         return GlobalSearchItem(source, results, source.id == manga.source)
-    }
-
-    override fun networkToLocalManga(sManga: SManga, sourceId: Long): Manga {
-        val localManga = super.networkToLocalManga(sManga, sourceId)
-        // For migration, displayed title should always match source rather than local DB
-        localManga.title = sManga.title
-        return localManga
     }
 
     fun migrateManga(prevManga: Manga, manga: Manga, replace: Boolean) {
@@ -146,9 +138,6 @@ class SearchPresenter(
             db.updateFlags(manga).executeAsBlocking()
             manga.viewer = prevManga.viewer
             db.updateMangaViewer(manga).executeAsBlocking()
-
-            // SearchPresenter#networkToLocalManga may have updated the manga title, so ensure db gets updated title
-            db.updateMangaTitle(manga).executeAsBlocking()
         }
     }
 }

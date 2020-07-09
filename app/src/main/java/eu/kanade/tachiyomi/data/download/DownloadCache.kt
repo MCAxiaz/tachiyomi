@@ -151,6 +151,10 @@ class DownloadCache(
         }
     }
 
+    fun invalidateCache() {
+        lastRenew = 0L
+    }
+
     /**
      * Adds a chapter that has just been download to this cache.
      *

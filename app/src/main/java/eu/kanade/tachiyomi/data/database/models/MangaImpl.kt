@@ -1,5 +1,10 @@
 package eu.kanade.tachiyomi.data.database.models
 
+import eu.kanade.tachiyomi.data.download.DownloadManager
+import eu.kanade.tachiyomi.source.model.SManga
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
+
 open class MangaImpl : Manga {
 
     override var id: Long? = null
@@ -33,6 +38,16 @@ open class MangaImpl : Manga {
     override var chapter_flags: Int = 0
 
     override var cover_last_modified: Long = 0
+
+    override fun copyFrom(other: SManga) {
+        if (other.title.isNotBlank() && title != other.title) {
+            val downloadManager = Injekt.get<DownloadManager>()
+            downloadManager.renameManga(this, other.title)
+            title = other.title
+        }
+
+        super.copyFrom(other)
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
