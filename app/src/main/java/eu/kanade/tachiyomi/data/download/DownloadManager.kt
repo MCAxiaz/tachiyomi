@@ -269,7 +269,9 @@ class DownloadManager(private val context: Context) {
 
         val newDirName = provider.getMangaDirName(newName)
 
-        provider.findMangaDir(manga, source)?.renameTo(newDirName)
-        cache.invalidateCache()
+        provider.findMangaDir(manga, source)?.let {
+            it.renameTo(newDirName)
+            cache.invalidateCache()
+        }
     }
 }
