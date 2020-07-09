@@ -263,4 +263,13 @@ class DownloadManager(private val context: Context) {
             Timber.e("Could not rename downloaded chapter: %s.", oldName)
         }
     }
+
+    fun renameManga(manga: Manga, newName: String) {
+        val source = sourceManager.get(manga.source) ?: return
+
+        val newDirName = provider.getMangaDirName(newName)
+
+        provider.findMangaDir(manga, source)?.renameTo(newDirName)
+        cache.invalidateCache()
+    }
 }

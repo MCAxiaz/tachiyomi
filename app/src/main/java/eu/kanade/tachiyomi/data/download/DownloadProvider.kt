@@ -121,6 +121,10 @@ class DownloadProvider(private val context: Context) {
         return DiskUtil.buildValidFilename(manga.title)
     }
 
+    fun getMangaDirName(name: String): String {
+        return DiskUtil.buildValidFilename(name)
+    }
+
     /**
      * Returns the chapter directory name for a chapter.
      *
