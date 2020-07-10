@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.ui.manga.info
 
+import android.animation.LayoutTransition
 import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Drawable
@@ -15,6 +16,7 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.DrawableImageViewTarget
 import com.bumptech.glide.request.target.Target
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Category
@@ -98,6 +100,8 @@ class MangaInfoController(private val fromSource: Boolean = false) :
 
         // For rounded corners
         binding.mangaCover.clipToOutline = true
+
+        binding.infoContainer.layoutTransition.enableTransitionType(LayoutTransition.CHANGING)
 
         binding.btnFavorite.clicks()
             .onEach { onFavoriteClick() }
@@ -235,6 +239,7 @@ class MangaInfoController(private val fromSource: Boolean = false) :
         } else {
             manga.title
         }
+        (parentController as MangaController).setTitle()
 
         // Update artist TextView.
         binding.mangaArtist.text = if (manga.artist.isNullOrBlank()) {
@@ -280,34 +285,36 @@ class MangaInfoController(private val fromSource: Boolean = false) :
         // Set cover if it wasn't already.
         val mangaThumbnail = manga.toMangaThumbnail()
 
-        // Preload the thumbnail to avoid concurrency issues when the two views write to the same cover cache file
-        GlideApp.with(view.context).load(mangaThumbnail)
-            .addListener(object : RequestListener<Drawable> {
-                override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>?, isFirstResource: Boolean): Boolean {
-                    return false
-                }
+        with(GlideApp.with(view.context)) {
+            clear(binding.mangaCover)
+            binding.backdrop?.let { clear(it) }
 
-                override fun onResourceReady(resource: Drawable?, model: Any?, target: Target<Drawable>?, dataSource: DataSource?, isFirstResource: Boolean): Boolean {
-                    GlideApp.with(view.context)
-                        .load(mangaThumbnail)
-                        .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                        .centerCrop()
-                        .into(binding.mangaCover)
+            // Preload the thumbnail to avoid concurrency issues when the two views write to the same cover cache file
+            load(mangaThumbnail)
+                .addListener(object : RequestListener<Drawable> {
+                    override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>?, isFirstResource: Boolean): Boolean {
+                        return false
+                    }
 
-                    binding.backdrop?.let {
-                        it.post {
+                    override fun onResourceReady(resource: Drawable?, model: Any?, target: Target<Drawable>?, dataSource: DataSource?, isFirstResource: Boolean): Boolean {
+                        GlideApp.with(view.context)
+                            .load(mangaThumbnail)
+                            .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                            .centerCrop()
+                            .into(binding.mangaCover)
+
+                        binding.backdrop?.let {
                             GlideApp.with(view.context)
                                 .load(mangaThumbnail)
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                                .centerCrop()
-                                .into(it)
+                                .into(DrawableImageViewTarget(it))
                         }
-                    }
 
-                    return false
-                }
-            })
-            .preload()
+                        return false
+                    }
+                })
+                .preload()
+        }
 
         // Manga info section
         if (manga.description.isNullOrBlank() && manga.genre.isNullOrBlank()) {
