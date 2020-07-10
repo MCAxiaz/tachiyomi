@@ -239,6 +239,7 @@ class MangaInfoController(private val fromSource: Boolean = false) :
         } else {
             manga.title
         }
+        (parentController as MangaController).setTitle()
 
         // Update artist TextView.
         binding.mangaArtist.text = if (manga.artist.isNullOrBlank()) {
