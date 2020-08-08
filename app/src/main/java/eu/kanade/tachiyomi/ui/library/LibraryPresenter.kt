@@ -7,6 +7,7 @@ import com.jakewharton.rxrelay.BehaviorRelay
 import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.database.DatabaseHelper
 import eu.kanade.tachiyomi.data.database.models.Category
+import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.database.models.MangaCategory
 import eu.kanade.tachiyomi.data.download.DownloadManager
@@ -311,6 +312,36 @@ class LibraryPresenter(
         return mangas.toSet()
             .map { db.getCategoriesForManga(it).executeAsBlocking() }
             .reduce { set1: Iterable<Category>, set2 -> set1.intersect(set2).toMutableList() }
+    }
+    
+    /**
+     * Marks mangas' chapters read status.
+     *
+     * @param mangas the list of manga.
+     */
+    fun markReadStatus(mangas: List<Manga>, read: Boolean) {
+        mangas.forEach { manga ->
+            launchIO {
+                val chapters = db.getChapters(manga).executeAsBlocking()
+                chapters.forEach {
+                    it.read = read
+                    if (!read) {
+                        it.last_page_read = 0
+                    }
+                }
+                db.updateChaptersProgress(chapters).executeAsBlocking()
+
+                if (preferences.removeAfterMarkedAsRead()) {
+                    deleteChapters(manga, chapters)
+                }
+            }
+        }
+    }
+
+    private fun deleteChapters(manga: Manga, chapters: List<Chapter>) {
+        sourceManager.get(manga.source)?.let { source ->
+            downloadManager.deleteChapters(chapters, manga, source)
+        }
     }
 
     /**
