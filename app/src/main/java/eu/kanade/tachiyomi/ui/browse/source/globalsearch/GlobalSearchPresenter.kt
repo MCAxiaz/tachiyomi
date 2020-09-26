@@ -108,7 +108,7 @@ open class GlobalSearchPresenter(
         return sourceManager.getCatalogueSources()
             .filter { it.lang in languages }
             .filterNot { it.id.toString() in disabledSourceIds }
-            .sortedWith(compareBy({ it.id.toString() !in pinnedSourceIds }, { "(${it.lang}) ${it.name}" }))
+            .sortedWith(compareBy({ it.id.toString() !in pinnedSourceIds }, { "${it.name.toLowerCase()} (${it.lang})" }))
     }
 
     private fun getSourcesToQuery(): List<CatalogueSource> {
