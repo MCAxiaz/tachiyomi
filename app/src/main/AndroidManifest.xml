@@ -40,11 +40,6 @@
                 android:resource="@xml/shortcuts" />
         </activity>
         <activity
-            android:name=".ui.main.ForceCloseActivity"
-            android:clearTaskOnLaunch="true"
-            android:noHistory="true"
-            android:theme="@android:style/Theme.NoDisplay" />
-        <activity
             android:name=".ui.main.DeepLinkActivity"
             android:launchMode="singleTask"
             android:theme="@android:style/Theme.NoDisplay">
@@ -90,6 +85,9 @@
                     android:scheme="tachiyomi" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ui.setting.track.MyAnimeListLoginActivity"
+            android:configChanges="uiMode|orientation|screenSize" />
         <activity
             android:name=".ui.setting.track.ShikimoriLoginActivity"
             android:label="Shikimori">

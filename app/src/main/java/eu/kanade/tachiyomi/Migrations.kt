@@ -3,9 +3,14 @@ package eu.kanade.tachiyomi
 import eu.kanade.tachiyomi.data.backup.BackupCreatorJob
 import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
+import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.data.updater.UpdaterJob
 import eu.kanade.tachiyomi.extension.ExtensionUpdateJob
 import eu.kanade.tachiyomi.ui.library.LibrarySort
+import eu.kanade.tachiyomi.util.system.toast
+import eu.kanade.tachiyomi.widget.ExtendedNavigationView
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 import java.io.File
 
 object Migrations {
@@ -18,13 +23,13 @@ object Migrations {
      */
     fun upgrade(preferences: PreferencesHelper): Boolean {
         val context = preferences.context
-        val oldVersion = preferences.lastVersionCode().get()
 
         // Cancel app updater job for debug builds that don't include it
         if (BuildConfig.DEBUG && !BuildConfig.INCLUDE_UPDATER) {
             UpdaterJob.cancelTask(context)
         }
 
+        val oldVersion = preferences.lastVersionCode().get()
         if (oldVersion < BuildConfig.VERSION_CODE) {
             preferences.lastVersionCode().set(BuildConfig.VERSION_CODE)
 
@@ -89,8 +94,17 @@ object Migrations {
                     preferences.librarySortingMode().set(LibrarySort.ALPHA)
                 }
             }
+            if (oldVersion < 78) {
+                // Force MAL log out due to login flow change
+                val trackManager = Injekt.get<TrackManager>()
+                if (trackManager.myAnimeList.isLogged) {
+                    trackManager.myAnimeList.logout()
+                    context.toast(R.string.myanimelist_relogin)
+                }
+            }
             return true
         }
+
         return false
     }
 }

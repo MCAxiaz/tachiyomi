@@ -3,12 +3,15 @@ package eu.kanade.tachiyomi.util.system
 import android.content.Context
 import android.content.pm.PackageManager
 import android.webkit.CookieManager
+import android.webkit.WebSettings
 import android.webkit.WebView
 
 object WebViewUtil {
     val WEBVIEW_UA_VERSION_REGEX by lazy {
         Regex(""".*Chrome/(\d+)\..*""")
     }
+
+    const val REQUESTED_WITH = "com.android.browser"
 
     const val MINIMUM_WEBVIEW_VERSION = 80
 
@@ -27,6 +30,18 @@ object WebViewUtil {
 
 fun WebView.isOutdated(): Boolean {
     return getWebViewMajorVersion(this) < WebViewUtil.MINIMUM_WEBVIEW_VERSION
+}
+
+fun WebView.setDefaultSettings() {
+    with(settings) {
+        javaScriptEnabled = true
+        domStorageEnabled = true
+        databaseEnabled = true
+        setAppCacheEnabled(true)
+        useWideViewPort = true
+        loadWithOverviewMode = true
+        cacheMode = WebSettings.LOAD_DEFAULT
+    }
 }
 
 // Based on https://stackoverflow.com/a/29218966
